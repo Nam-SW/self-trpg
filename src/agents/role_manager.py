@@ -1,0 +1,3 @@
+"""
+player role generator agent.
+"""
