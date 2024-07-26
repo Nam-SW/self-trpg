@@ -1,32 +1,19 @@
-import pandas as pd
-import numpy as np
+from glob import glob
+
 import streamlit as st
 
-
-def page2():
-    st.title("Second page")
-    st.text("this is test page 2.")
-    st.text("show dataframe.")
-
-    df = pd.DataFrame(
-        np.random.randint(1, 100, (20, 10)),
-        columns=[f"col_{i}" for i in range(10)],
-    )
-    st.dataframe(df)
-    # st.download_button(
-    #     label="download",
-    #     data=df.to_csv(index=None).encode("utf-8"),
-    #     file_name="dataframe.csv",
-    # )
+from utils import load_json
+from subpages.story_view import wrapper
 
 
 def main():
     pages = {
-        "section 1": [
-            st.Page("./subpages/chatbot_page.py", title="First page: chatbot", icon="🔥"),
+        "새 이야기 시작하기": [
+            st.Page("./subpages/new_story.py", title="새 이야기 만들기", icon="🔥"),
         ],
-        "section 2": [
-            st.Page(page2, title="Second page: dataframe", icon="🤗"),
+        "이어서 이야기 읽기": [
+            st.Page(wrapper(load_json(fn)), title=fn, url_path=f"story_{i}")
+            for i, fn in enumerate(glob("../chat_info_test/*.json"))
         ],
     }
 
