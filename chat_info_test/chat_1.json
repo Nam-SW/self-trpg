@@ -1,0 +1,13 @@
+{
+    "story_name": "테스트용 스토리",
+    "chats": [
+        [
+            {"role": "user", "message": "테스트용 문장입니다."},
+            {"role": "ai", "message": "테스트용 답변 문장입니다."},
+            {"role": "user", "message": "테스트용 문장입니다. - 1"},
+            {"role": "ai", "message": "테스트용 답변 문장입니다. - 1"},
+            {"role": "user", "message": "테스트용 문장입니다. - 2"},
+            {"role": "ai", "message": "테스트용 답변 문장입니다. - 2"}
+        ]
+    ]
+}
