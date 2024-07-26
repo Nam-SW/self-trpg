@@ -12,8 +12,11 @@ st.text("이야기를 정하기 위해 탐험할 세계의 주제와 세부 키�
 input_theme = st.text_input("세게의 주제", "좀비 아포칼립스")
 input_keywords = st.text_input("세부 키워드", "조선 후기, 조총, 왕궁, 왕족")
 
-co_1, co_2, co_3 = st.columns((1, 1, 2))
 
+# TODO: 세계관 작성, 주인공 환경 세팅 부분 각 탭으로 분리.
+# TODO: 둘 다 작성이 완료되어야 생성 가능하게 수정.
+
+co_1, co_2, co_3 = st.columns((1, 1, 2))
 
 with co_1:
     gen_btn = st.button("이야기 작성하기")
