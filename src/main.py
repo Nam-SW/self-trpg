@@ -2,7 +2,7 @@ from glob import glob
 
 import streamlit as st
 
-from utils import load_json  # TODO: 데이터 저장방식 수정 필요.
+from utils.file_io import load_json  # TODO: 데이터 저장방식 수정 필요.
 from subpages.story_view import wrapper
 
 
