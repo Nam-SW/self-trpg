@@ -22,3 +22,4 @@ elif cfg.model.type == "google":
 os.environ[env_key] = cfg.model.api_key
 model_type = cfg.model.type
 model_args = OmegaConf.to_object(cfg.model.args)
+path = cfg.path

@@ -1,9 +1,11 @@
 import random as rd
+import datetime as dt
 
 import streamlit as st
 
 from agents.screenwriter import screenwriter
 from agents.role_manager import role_manager
+from utils.user_info import get_new_user
 
 
 need_keys = ["worldview", "sex", "role", "location", "starting_point"]
@@ -11,16 +13,12 @@ if "vars" not in st.session_state:
     st.session_state.vars = {k: "" for k in need_keys}
 
 
-# for key in need_keys:
-#     if key not in st.session_state:
-#         setattr(st.session_state, key, "")
-# if "user_info" not in st.session_state:
-#     st.session_state.user_info = {}
 st.title("새로운 이야기")
 
 st.text("새로운 이야기를 시작하기 앞서, 모험을 떠날 이야기를 정해봅시다.")
 st.text("이야기를 정하기 위해 탐험할 세계의 주제와 세부 키워드를 입력해주세요.￦n")
 
+# TODO: 얘네들도 변수로 추가해야함
 input_theme = st.text_input("세게의 주제", "좀비 아포칼립스")
 input_keywords = st.text_input("세부 키워드", "조선 후기, 조총, 왕궁, 왕족")
 
@@ -34,6 +32,8 @@ if st.button("이야기 시작하기"):
             break
 
     else:
+        user_info = get_new_user(*[st.session_state.vars[k] for k in need_keys])
+        fn = dt.datetime.now().strftime("%y%m%d-%H%M%S_")
         st.success(
             "생성이 완료되었습니다. 페이지를 새로고침하면 좌측에 생성한 모험의 책장이 생성됩니다.",
             icon="✅",

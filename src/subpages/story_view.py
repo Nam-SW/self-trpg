@@ -8,7 +8,7 @@ def wrapper(stroy_board: dict) -> callable:
 
         if "chat_history" not in st.session_state:
             st.session_state.chat_history = (
-                [] if len(stroy_board["chats"]) > 0 else stroy_board["chats"][-1]
+                [] if len(stroy_board["chat_history"]) > 0 else stroy_board["chat_history"][-1]
             )
 
         for content in st.session_state.chat_history:
