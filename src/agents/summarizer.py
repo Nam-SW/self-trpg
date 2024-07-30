@@ -21,7 +21,7 @@ system_prompt = """당신은 세계를 모험하는 이야기를 요약해 기�
 
 모두가 한눈에 읽고 이해할 수 있도록 요약해야 하며, 성공적으로 작업을 완료할 시 인센티브가 주어집니다."""
 
-user_template = """<이전 사건>
+user_template = """**유저가 겪은 사건**
 {story_context}"""
 
 summarizer = get_prompt_chain(f"{system_prompt}\n\n{user_template}")

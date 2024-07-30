@@ -10,6 +10,6 @@ system_prompt = """당신은 유저가 모험할 세계의 기본적인 세계�
 작성하는 문체는 간결하고 정보 전달만을 목적으로 함을 생각하며 작성해야 합니다.
 세계관의 대략적인 지형 및 지리 설명, 세력관계, 핵심 인물, 주요 흐름 등을 작성해야 합니다.
 단, 플레이할 스토리의 다양성을 위해 전개 방향은 작성하지 않습니다."""
-user_template = "세계관 테마 키워드: {theme}\n서브 스토리라인 키워드: {keywords}"
+user_template = "**세계관 테마 키워드**: {theme}\n**서브 스토리라인 키워드**: {keywords}"
 
 screenwriter = get_prompt_chain(f"{system_prompt}\n\n{user_template}")
