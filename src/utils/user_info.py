@@ -9,12 +9,12 @@ def get_default_user_info() -> dict:
         "main_theme": None,  # 메인 주제
         "keywords": None,  # 서브 키워드
         "worldview": None,  # 세계관
-        "user_role": None,  # 유저의 역할 / 변화할 수도 있으니 정산에 추가해야할 듯
         "chat_history": [],
+        "event_history": [],  # 사건 요약 / 월드 정보에 포함하는게 좋으려나
         "user_info": {
+            "user_role": None,  # 유저의 역할 / 변화할 수도 있으니 정산에 추가해야할 듯
             "user_sex": None,  # 유저 성별
             "current_location": None,  # 최근 위치
-            "prev_major_event": [],  # 사건 요약 / 월드 정보에 포함하는게 좋으려나
             "hp": 100,  # 체력
             "mental": 100,  # 정신력
             "max_hp": 100,
