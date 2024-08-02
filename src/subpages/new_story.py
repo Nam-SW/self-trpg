@@ -1,11 +1,11 @@
 import random as rd
-import datetime as dt
 
 import streamlit as st
 
 from agents.screenwriter import screenwriter
 from agents.role_manager import role_manager
-from utils.user_info import get_new_user
+from utils.user_info import get_new_user, save_user_info
+from utils.utils import convert_json
 
 
 need_keys = [
@@ -45,8 +45,9 @@ st.title("새로운 이야기")
 st.text("새로운 이야기를 시작하기 앞서, 모험을 떠날 이야기를 정해봅시다.")
 st.text("이야기를 정하기 위해 탐험할 세계의 주제와 세부 키워드를 입력해주세요.")
 
-main_theme = st.text_input("세계의 주제", "좀비 아포칼립스")
-keywords = st.text_input("세부 키워드", "고려 중기, 화약, 왕궁, 왕족")
+story_name = st.text_input("이야기의 이름", "좀비고려")
+main_theme = st.text_input("세계의 주제", "좀비(강시) 아포칼립스")
+keywords = st.text_input("세부 키워드", "강시 역병, 고려 중기, 화약, 왕궁, 왕족")
 
 
 if st.button("이야기 시작하기"):
@@ -57,7 +58,7 @@ if st.button("이야기 시작하기"):
 
     else:
         user_info = get_new_user(**{k: get(k) for k in need_keys})
-        time = dt.datetime.now().strftime("%y%m%d-%H%M%S")
+        save_user_info(user_info, story_name)
         st.success(
             "생성이 완료되었습니다. 페이지를 새로고침하면 좌측에 생성한 모험의 책장이 생성됩니다.",
             icon="✅",
@@ -73,12 +74,12 @@ with tab1:
         if get("main_theme") == "" or get("keywords") == "":
             st.warning("주제와 키워드를 입력하세요.")
         else:
-            # gen = screenwriter.stream({"theme": get("main_theme"), "keywords": get("keywords")})
-            # set("worldview", st.write_stream(gen))
-            set("worldview", "테스트")
+            gen = screenwriter.stream({"theme": get("main_theme"), "keywords": get("keywords")})
+            set("worldview", st.write_stream(gen))
+            # set("worldview", "테스트")
 
-    if get("worldview") != "":
-        st.write(get("worldview"))
+    # if get("worldview") != "":
+    #     st.write(get("worldview"))
 
 with tab2:
     if get("worldview") == "":
@@ -89,29 +90,30 @@ with tab2:
         st.button("재설정", type="primary")
 
         set("sex", rd.choice(["남성", "여성"]))
-        # result = role_manager.invoke(
-        #     {
-        #         "worldview": get("worldview"),
-        #         "charactor_keywords": charactor_keywords,
-        #         "sex": get("sex"),
-        #     }
-        # )
-        # start_info = eval(result)
-        start_info = {
-            "role": str(rd.randint(0, 100000)),
-            "location": str(rd.randint(0, 100000)),
-            "hp": rd.randint(0, 100000),
-            "mental": rd.randint(0, 100000),
-            "max_hp": rd.randint(0, 100000),
-            "max_mental": rd.randint(0, 100000),
-            "characteristics": [str(rd.randint(0, 100000))],
-            "skills": [str(rd.randint(0, 100000))],
-            "inventory": [str(rd.randint(0, 100000))],
-            "start_event": str(rd.randint(0, 100000)),
-        }
+        result = role_manager.invoke(
+            {
+                "worldview": get("worldview"),
+                "charactor_keywords": charactor_keywords,
+                "sex": get("sex"),
+            }
+        )
+        start_info = convert_json(result)
+
+        # start_info = {
+        #     "role": str(rd.randint(0, 100000)),
+        #     "location": str(rd.randint(0, 100000)),
+        #     "hp": rd.randint(0, 100000),
+        #     "mental": rd.randint(0, 100000),
+        #     "max_hp": rd.randint(0, 100000),
+        #     "max_mental": rd.randint(0, 100000),
+        #     "characteristics": [str(rd.randint(0, 100000))],
+        #     "skills": [str(rd.randint(0, 100000))],
+        #     "inventory": [str(rd.randint(0, 100000))],
+        #     "start_event": str(rd.randint(0, 100000)),
+        # }
+
         for k, v in start_info.items():
             set(k, v, define=False)
-
         st.write("성별: ", get("sex"))
         st.write("역할: ", get("role"))
         st.write("위치: ", get("location"))
@@ -119,7 +121,7 @@ with tab2:
         st.write("현재 정신력: ", get("mental"))
         st.write("최대 체력: ", get("max_hp"))
         st.write("최대 정신력: ", get("max_mental"))
-        st.write("특징: ", get("characteristics"))
+        st.write("특성: ", get("characteristics"))
         st.write("보유 기술: ", get("skills"))
         st.write("보유 아이템: ", get("inventory"))
         st.write("시작 이야기: ", get("start_event"))
