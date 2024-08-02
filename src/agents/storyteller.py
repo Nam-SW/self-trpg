@@ -33,7 +33,7 @@ For example, if a user describes a violent and horrific act, the Storyteller wil
 **Worldview**
 {worldview}
 
-**What users are saying**
+**User's past experiences(sorted chronologically)**
 {event_history}
 
 **Current user information**
@@ -69,7 +69,7 @@ Respond in the same language as the user's input."""
 # **세계관**
 # {worldview}
 
-# **유저가 겪은 이야기들**
+# **유저가 겪은 과거의 이야기들(시간순으로 정렬됨)**
 # {event_history}
 
 # **현재 유저 정보**
