@@ -1,3 +1,11 @@
+import os
+import datetime as dt
+from glob import glob
+
+from utils.file_io import dump_json, load_json
+from config import path
+
+
 def get_default_user_info() -> dict:
     """유저 정보 기본 틀 반환
 
@@ -64,3 +72,24 @@ def get_new_user(
     info["user_info"]["inventory"] = inventory
 
     return info
+
+
+def save_user_info(user_info: dict, story_name: str = "") -> None:
+    if story_name == "":
+        story_name = user_info["main_theme"]
+    story_name = story_name.replace(" ", "_")
+
+    fn = story_name + ".json"
+    if not os.path.isfile(os.path.join(path.story_dir, fn)):
+        time = dt.datetime.now().strftime("%y%m%d%H%M%S_")
+        fn = time + fn
+    dump_json(user_info, os.path.join(path.story_dir, fn))
+
+
+def get_story_list() -> list[str]:
+    stories = [os.path.splitext(fn)[0] for fn in os.listdir(path.story_dir) if fn.endswith(".json")]
+    return stories
+
+
+def load_story(story_name: str) -> dict:
+    return load_json(os.path.join(path.story_dir, story_name + ".json"))
