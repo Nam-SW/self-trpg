@@ -8,8 +8,8 @@ def dump_json(file: dict, path: str) -> None:
         file (dict): 저장할 json 객체
         path (str): 저장할 파일 경로
     """
-    with open(path, "w") as f:
-        f.write(json.dumps(file))  # 인코딩 깨지는거 방지
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(json.dumps(file, ensure_ascii=False))  # 인코딩 깨지는거 방지
 
 
 def load_json(path: str) -> dict:
@@ -21,7 +21,7 @@ def load_json(path: str) -> dict:
     Returns:
         dict: 불러온 json 객체
     """
-    with open(path, "r") as f:
+    with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
     return data
 
