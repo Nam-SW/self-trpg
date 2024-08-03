@@ -55,17 +55,19 @@ def get_chat_chain(
 
 
 class MultiTernChain:
-    def __init__(self, system_prompt: str, **kwargs) -> None:
+    def __init__(self, system_prompt: str, limit_turn: int = 20, **kwargs) -> None:
         self.system_prompt = system_prompt
+        self.limit_turn = limit_turn
 
         self.model = get_agent(**kwargs)
         self.parser = StrOutputParser()
         self.chain = None
+        self.clear_history()
 
     @property
     def chat_history(self):
         return [
-            f"{'이야기꾼' if isinstance(m, AIMessage) else '유저'}: {m.content}"
+            {"role": "ai" if isinstance(m, AIMessage) else "user", "message": m.content}
             for m in self.__chat_history
         ]
 
@@ -75,15 +77,14 @@ class MultiTernChain:
     def init_new_session(self, system_prompt_args: dict = {}) -> str:
         self.clear_history()
         self.system_prompt_args = system_prompt_args
-        sys_prompt = self.system_prompt.format(**self.system_prompt_args)
+        sys_prompt = self.system_prompt.format(
+            **self.system_prompt_args, limit_turn=self.limit_turn
+        )
         prompt_template = ChatPromptTemplate.from_messages(
             [
                 ("system", sys_prompt),
                 MessagesPlaceholder(variable_name="chat_history"),
-                (
-                    "user",
-                    ("행동:{{message}}\n"),
-                ),
+                ("user", "user: {{message}}"),
             ],
             template_format="mustache",  # json 형태 입력받을 수 있게
         )
@@ -96,28 +97,28 @@ class MultiTernChain:
         self.__chat_history.append(AIMessage(content=convert_json(init_result)["context"]))
         return init_result
 
+    def get_turn_limit_prompt(self) -> str:
+        limit = self.limit_turn - len(self.chat_history) // 2
+        return f"\n\nAnswer in JSON format, and Try to end the conversation within {max(limit, 1)} turns."
+
     def get_answer_stream(self, input_text: str):
         if self.chain is None:
             raise RuntimeError("chain must be init before answer, through `set_system_prompt()`")
 
-        message = HumanMessage(content=input_text)
         response = ""
-
         for chunk in self.chain.stream(
             {
-                "message": message,
+                "message": HumanMessage(content=input_text + self.get_turn_limit_prompt()),
                 "chat_history": self.__chat_history,
             },
             # config={"metadata": {"conversation_id": conversation_id}},
         ):
             yield chunk
             response += chunk
-        self.__chat_history.extend(
-            [
-                message,
-                AIMessage(content=convert_json(response)["context"]),
-            ]
-        )
+        self.__chat_history += [
+            HumanMessage(content=input_text),
+            AIMessage(content=convert_json(response)["context"]),
+        ]
 
     def get_answer(self, input_text: str):
         if self.chain is None:
@@ -125,10 +126,8 @@ class MultiTernChain:
 
         response = self.chain.invoke({"message": input_text, "chat_history": self.__chat_history})
         # print(response)
-        self.__chat_history.extend(
-            [
-                HumanMessage(content=input_text),
-                AIMessage(content=convert_json(response)["context"]),
-            ]
-        )
+        self.__chat_history += [
+            HumanMessage(content=input_text + self.get_turn_limit_prompt()),
+            AIMessage(content=convert_json(response)["context"]),
+        ]
         return response
