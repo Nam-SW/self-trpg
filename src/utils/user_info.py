@@ -19,6 +19,7 @@ def get_default_user_info() -> dict:
         "worldview": None,  # str: 세계관
         "chat_history": [],  # list[list[str]]: 전체 채팅 history
         "event_history": [],  # list[str]: 사건 요약 / 월드 정보에 포함하는게 좋으려나
+        "limit_event": 50,  # 최대로 겪을 수 있는 사건의 수.
         "user_info": {
             "role": None,  # str: 유저의 역할 / 변화할 수도 있으니 정산에 추가해야할 듯
             "sex": None,  # str: 유저 성별
@@ -39,8 +40,9 @@ def get_new_user(
     main_theme: str,
     keywords: str,
     worldview: str,
-    sex: str,
+    limit_event: int,
     role: str,
+    sex: str,
     location: str,
     hp: int,
     mental: int,
@@ -58,10 +60,11 @@ def get_new_user(
     info["keywords"] = keywords
     info["worldview"] = worldview
     info["event_history"] = [start_event]
+    info["limit_event"] = limit_event
 
     # 유저 정보
-    info["user_info"]["sex"] = sex
     info["user_info"]["role"] = role
+    info["user_info"]["sex"] = sex
     info["user_info"]["location"] = location
     info["user_info"]["hp"] = hp
     info["user_info"]["mental"] = mental
