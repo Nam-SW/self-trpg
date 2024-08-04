@@ -4,6 +4,7 @@ from typing import Any
 
 
 def convert_json(text: str) -> dict:
+    origin = text
     group = re.search(r"```(?:json\s*)?([\s\S]*?)```", text, re.S)
     if group is not None:
         text = group.group(1)
@@ -16,7 +17,7 @@ def convert_json(text: str) -> dict:
         try:
             result = json.loads(text)
         except:
-            raise SyntaxError(f"can't convert json from context: \n{text}")
+            raise SyntaxError(f"can't convert json from context: \n{origin}")
     return result
 
 

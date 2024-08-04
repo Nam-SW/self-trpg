@@ -17,7 +17,7 @@ def get_default_user_info() -> dict:
         "main_theme": None,  # str: 메인 주제
         "keywords": None,  # str: 서브 키워드
         "worldview": None,  # str: 세계관
-        "chat_history": [],  # list[list[str]]: 전체 채팅 history
+        "chat_history": [[]],  # list[list[str]]: 전체 채팅 history
         "event_history": [],  # list[str]: 사건 요약 / 월드 정보에 포함하는게 좋으려나
         "limit_event": 50,  # 최대로 겪을 수 있는 사건의 수.
         "user_info": {
