@@ -12,8 +12,9 @@ need_keys = [
     "main_theme",
     "keywords",
     "worldview",
-    "sex",
+    "limit_event",
     "role",
+    "sex",
     "location",
     "hp",
     "mental",
@@ -48,9 +49,11 @@ st.text("이야기를 정하기 위해 탐험할 세계의 주제와 세부 키�
 story_name = st.text_input("이야기의 이름", "좀비고려")
 main_theme = st.text_input("세계의 주제", "좀비(강시) 아포칼립스")
 keywords = st.text_input("세부 키워드", "강시 역병, 고려 중기, 화약, 왕궁, 왕족")
+limit_event = start_time = st.slider("이야기의 길이", 10, 200, 50)
 
 
 if st.button("이야기 시작하기"):
+    set("limit_event", limit_event)
     for k in need_keys:
         if get(k) == "":
             st.warning("이야기와 캐릭터를 생성한 후 결정할 수 있습니다.", icon="⚠️")
@@ -87,19 +90,20 @@ with tab2:
 
     else:
         charactor_keywords = st.text_input("주인공 키워드")
-        st.button("재설정", type="primary")
+        st.button("재설정")
 
-        set("sex", rd.choice(["남성", "여성"]))
+        # set("sex", rd.choice(["남성", "여성"]))
         result = role_manager.invoke(
             {
                 "worldview": get("worldview"),
                 "charactor_keywords": charactor_keywords,
-                "sex": get("sex"),
+                # "sex": get("sex"),
             }
         )
         start_info = convert_json(result)
 
         # start_info = {
+        #     "sex": str(rd.randint(0, 100000)),
         #     "role": str(rd.randint(0, 100000)),
         #     "location": str(rd.randint(0, 100000)),
         #     "hp": rd.randint(0, 100000),
