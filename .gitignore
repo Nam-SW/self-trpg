@@ -161,3 +161,4 @@ cython_debug/
 
 
 config/*.yaml
+chat_info_test
