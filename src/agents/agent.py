@@ -71,11 +71,23 @@ class MultiTernChain:
             for m in self.__chat_history
         ]
 
+    @chat_history.setter
+    def chat_history(self, value: list[dict]):
+        self.clear_history()
+        for log in value:
+            if log is None:
+                self.__chat_history.append(None)
+            if log["role"] == "ai":
+                self.__chat_history.append(AIMessage(log["message"]))
+            elif log["role"] == "user":
+                self.__chat_history.append(HumanMessage(log["message"]))
+            else:
+                raise KeyError(f"`{log['role']}` is unexpected role.")
+
     def clear_history(self):
         self.__chat_history = []
 
-    def init_new_session(self, system_prompt_args: dict = {}) -> str:
-        self.clear_history()
+    def set_system_prompt(self, system_prompt_args: dict = {}):
         self.system_prompt_args = system_prompt_args
         sys_prompt = self.system_prompt.format(
             **self.system_prompt_args, limit_turn=self.limit_turn
@@ -90,8 +102,11 @@ class MultiTernChain:
         )
         self.chain = prompt_template | self.model | self.parser
 
+    def init_new_session(self) -> str:
+        self.clear_history()
+
         init_chain = self.model | self.parser
-        init_result = init_chain.invoke(sys_prompt)
+        init_result = init_chain.invoke(self.chain.first.messages[0].prompt.template)
         # print(init_result)
 
         self.__chat_history.append(AIMessage(content=convert_json(init_result)["context"]))
@@ -124,10 +139,15 @@ class MultiTernChain:
         if self.chain is None:
             raise RuntimeError("chain must be init before answer, through `set_system_prompt()`")
 
-        response = self.chain.invoke({"message": input_text, "chat_history": self.__chat_history})
+        response = self.chain.invoke(
+            {
+                "message": input_text + self.get_turn_limit_prompt(),
+                "chat_history": self.__chat_history,
+            }
+        )
         # print(response)
         self.__chat_history += [
-            HumanMessage(content=input_text + self.get_turn_limit_prompt()),
+            HumanMessage(content=input_text),
             AIMessage(content=convert_json(response)["context"]),
         ]
         return response
