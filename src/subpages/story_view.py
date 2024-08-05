@@ -39,6 +39,7 @@ def wrapper(story_name: str) -> callable:
 
     def _page():
         over_event_limit = len(play_info["event_history"]) >= play_info["limit_event"]
+        is_end = over_event_limit or play_info["user_info"]["hp"] <= 0
 
         st.title(story_name.split("_", 0)[0])
         st.slider(
@@ -53,10 +54,10 @@ def wrapper(story_name: str) -> callable:
         )
         inputs = st.chat_input(
             "텍스트를 입력하세요.",
-            disabled=over_event_limit,
+            disabled=is_end,
         )
 
-        if over_event_limit or play_info["user_info"]["hp"] <= 0:  # 엔딩
+        if is_end:  # 엔딩
             # 만약 엔딩이 기록되어있으면
             # if len(play_info["event_history"]) != len(play_info["chat_history"]):
             if len(play_info["chat_history"][-1]) == 0:
@@ -80,8 +81,11 @@ def wrapper(story_name: str) -> callable:
                     send_in_scope(content["role"], content["message"])
 
             if prompt := inputs:
+                if is_end:
+                    pass
+
                 # 사건 시작: init new session
-                if len(play_info["chat_history"][-1]) == 0:
+                elif len(play_info["chat_history"][-1]) == 0:
                     storyteller.set_system_prompt(
                         {
                             "worldview": play_info["worldview"],
@@ -161,7 +165,10 @@ def wrapper(story_name: str) -> callable:
                 for key, value in reward.items():
                     if key in play_info["user_info"]:
                         play_info["user_info"][key] = value
-                if play_info["user_info"]["mental"] <= 0:
+                if (
+                    play_info["user_info"]["mental"] <= 0
+                    and "미쳐버림" not in play_info["user_info"]["characteristics"]
+                ):
                     play_info["user_info"]["characteristics"].append("미쳐버림")
 
                 save_user_info(play_info, story_name)
