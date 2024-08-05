@@ -10,16 +10,6 @@ from utils.user_info import load_story, save_user_info
 from utils.utils import convert_json, try_n
 
 
-# def get(key, default=""):
-#     return getattr(st.session_state, key, default)
-
-
-# def set(key, value, define=True):
-#     if not define and not hasattr(st.session_state, key):
-#         raise KeyError(f"st.session_state has no attribute `{key}`.")
-#     return setattr(st.session_state, key, value)
-
-
 def send_in_scope(role, msg):
     with st.chat_message(role):
         st.markdown(msg)
@@ -35,7 +25,6 @@ def wrapper(story_name: str) -> callable:
         }
     )
     storyteller.chat_history = play_info["chat_history"][-1]
-    # set("play_info", play_info)
 
     def _page():
         over_event_limit = len(play_info["event_history"]) >= play_info["limit_event"]
@@ -58,8 +47,7 @@ def wrapper(story_name: str) -> callable:
         )
 
         if is_end:  # 엔딩
-            # 만약 엔딩이 기록되어있으면
-            # if len(play_info["event_history"]) != len(play_info["chat_history"]):
+            # 만약 엔딩이 없다면
             if len(play_info["chat_history"][-1]) == 0:
                 ending = story_closer.invoke(
                     {
@@ -102,10 +90,6 @@ def wrapper(story_name: str) -> callable:
                     play_info["chat_history"][-1] = storyteller.chat_history
                     save_user_info(play_info, story_name)
 
-                # # 사건 종료:
-                # elif play_info["chat_history"][-1][-1] is None:
-                #     set("chat_sess", [])
-
                 # 그냥 채팅
                 else:
                     send_in_scope("user", prompt)
@@ -126,15 +110,8 @@ def wrapper(story_name: str) -> callable:
 
             if len(play_info["chat_history"][-1]) > 0 and play_info["chat_history"][-1][-1] is None:
                 send_in_scope("ai", "사건이 종료되었습니다.")
-                # with st.chat_message("ai"):
-                #     st.markdown("하나")
-                # play_info["event_history"].append("test")
-                # play_info["user_info"]["max_hp"] += 99999
-                # set("chat_history", [])
 
-                # if len(play_info["chat_history"]) == len(play_info["event_history"])
                 play_info["chat_history"].append([])
-                # play_info["chat_history"].append(storyteller.chat_history)
 
                 # 요약
                 summary = convert_json(
