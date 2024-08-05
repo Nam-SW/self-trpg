@@ -61,7 +61,7 @@ if st.button("이야기 시작하기"):
 
     else:
         user_info = get_new_user(**{k: get(k) for k in need_keys})
-        save_user_info(user_info, story_name)
+        save_user_info(st.session_state["username"], user_info, story_name)
         st.success(
             "생성이 완료되었습니다. 페이지를 새로고침하면 좌측에 생성한 모험의 책장이 생성됩니다.",
             icon="✅",

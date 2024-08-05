@@ -16,7 +16,7 @@ def send_in_scope(role, msg):
 
 
 def wrapper(story_name: str) -> callable:
-    play_info = load_story(story_name)
+    play_info = load_story(st.session_state["username"], story_name)
     storyteller.set_system_prompt(
         {
             "worldview": play_info["worldview"],
@@ -57,7 +57,7 @@ def wrapper(story_name: str) -> callable:
                     }
                 )
                 play_info["chat_history"][-1].append({"role": "ai", "message": ending})
-                save_user_info(play_info, story_name)
+                save_user_info(st.session_state["username"], play_info, story_name)
 
         # 메인 채팅 뷰
         with tab_chat:
@@ -88,7 +88,7 @@ def wrapper(story_name: str) -> callable:
 
                     send_in_scope("ai", msg)
                     play_info["chat_history"][-1] = storyteller.chat_history
-                    save_user_info(play_info, story_name)
+                    save_user_info(st.session_state["username"], play_info, story_name)
 
                 # 그냥 채팅
                 else:
@@ -106,7 +106,7 @@ def wrapper(story_name: str) -> callable:
                     play_info["chat_history"][-1] = storyteller.chat_history
                     if res["is_end"]:
                         play_info["chat_history"][-1].append(None)
-                    save_user_info(play_info, story_name)
+                    save_user_info(st.session_state["username"], play_info, story_name)
 
             if len(play_info["chat_history"][-1]) > 0 and play_info["chat_history"][-1][-1] is None:
                 send_in_scope("ai", "사건이 종료되었습니다.")
@@ -148,7 +148,7 @@ def wrapper(story_name: str) -> callable:
                 ):
                     play_info["user_info"]["characteristics"].append("미쳐버림")
 
-                save_user_info(play_info, story_name)
+                save_user_info(st.session_state["username"], play_info, story_name)
 
                 send_in_scope("ai", "아무 키나 입력하여 다음 사건으로 넘어가기")
 

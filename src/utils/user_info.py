@@ -77,22 +77,26 @@ def get_new_user(
     return info
 
 
-def save_user_info(user_info: dict, story_name: str = "") -> None:
+def save_user_info(username: str, user_info: dict, story_name: str = "") -> None:
     if story_name == "":
         story_name = user_info["main_theme"]
     story_name = story_name.replace(" ", "_")
 
     fn = story_name + ".json"
-    if not os.path.isfile(os.path.join(path.story_dir, fn)):
+    if not os.path.isfile(os.path.join(path.story_dir, username, fn)):
         time = dt.datetime.now().strftime("%y%m%d%H%M%S_")
         fn = time + fn
-    dump_json(user_info, os.path.join(path.story_dir, fn))
+    dump_json(user_info, os.path.join(path.story_dir, username, fn))
 
 
-def get_story_list() -> list[str]:
-    stories = [os.path.splitext(fn)[0] for fn in os.listdir(path.story_dir) if fn.endswith(".json")]
+def get_story_list(username: str) -> list[str]:
+    stories = [
+        os.path.splitext(fn)[0]
+        for fn in os.listdir(os.path.join(path.story_dir, username))
+        if fn.endswith(".json")
+    ]
     return stories
 
 
-def load_story(story_name: str) -> dict:
-    return load_json(os.path.join(path.story_dir, story_name + ".json"))
+def load_story(username: str, story_name: str) -> dict:
+    return load_json(os.path.join(path.story_dir, username, story_name + ".json"))
