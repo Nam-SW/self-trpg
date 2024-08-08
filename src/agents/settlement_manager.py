@@ -23,9 +23,7 @@ class SettlementResponseStruct(BaseModel):
         description="보유한 기술입니다. 타인과 구분할 수 있는 유의미한 기술만 기록됩니다."
     )
     inventory: list[str] = Field(description="사건 이후 보유중인 아이템입니다.")
-    companion: str = Field(
-        description="이야기의 시작이 될 때의 사건입니다. 100 ~ 500글자 사이로 작성합니다."
-    )
+    companion: str = Field(description="동행중인 동료로, 사람이 아니더라도 함께할 수 있습니다.")
 
 
 system_prompt = """당신은 세계를 모험하는 이야기를 주시하며 유저의 상태를 관리하는 관리자입니다.
