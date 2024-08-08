@@ -1,3 +1,5 @@
+from typing import Optional
+
 from config import model_type, model_args
 
 from langchain_openai import ChatOpenAI
@@ -8,6 +10,7 @@ from langchain_google_vertexai import ChatVertexAI
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate, ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.pydantic_v1 import BaseModel
 from langchain_community.callbacks.manager import get_openai_callback
 
 from utils.utils import convert_json
@@ -32,12 +35,22 @@ def get_prompt_chain(
     prompt: str,
     prompt_kwargs: dict = {},
     agent_kwargs: dict = {},
+    is_output_parser: bool = True,
+    output_struct: Optional[BaseModel] = None,
 ):
     prompt_template = PromptTemplate.from_template(prompt, **prompt_kwargs)
     model = get_agent(**agent_kwargs)
-    parser = StrOutputParser()
 
-    chain = prompt_template | model | parser
+    if output_struct is not None:
+        model = model.with_structured_output(
+            output_struct,
+        )
+
+    chain = prompt_template | model
+
+    if is_output_parser:
+        chain = chain | StrOutputParser()
+
     return chain
 
 
@@ -55,7 +68,12 @@ def get_chat_chain(
 
 
 class MultiTernChain:
-    def __init__(self, system_prompt: str, limit_turn: int = 20, **kwargs) -> None:
+    def __init__(
+        self,
+        system_prompt: str,
+        limit_turn: int = 20,
+        **kwargs,
+    ) -> None:
         self.system_prompt = system_prompt
         self.limit_turn = limit_turn
 
