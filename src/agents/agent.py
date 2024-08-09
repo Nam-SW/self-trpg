@@ -1,9 +1,9 @@
-from typing import Optional
+import json
+from typing import Optional, Union
 
 from config import model_type, model_args
 
-from langchain_openai import ChatOpenAI
-from langchain_openai import AzureChatOpenAI
+from langchain_openai import ChatOpenAI, AzureChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langchain_google_vertexai import ChatVertexAI
 
@@ -11,7 +11,8 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate, ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.pydantic_v1 import BaseModel
-from langchain_community.callbacks.manager import get_openai_callback
+
+# from langchain_community.callbacks.manager import get_openai_callback
 
 from utils.utils import convert_json
 
@@ -31,11 +32,14 @@ def get_agent(**kwargs):
     return agent
 
 
+def convert_json(message: AIMessage) -> Union[dict, list]:
+    return json.loads(message.json())
+
+
 def get_prompt_chain(
     prompt: str,
     prompt_kwargs: dict = {},
     agent_kwargs: dict = {},
-    is_output_parser: bool = True,
     output_struct: Optional[BaseModel] = None,
 ):
     prompt_template = PromptTemplate.from_template(prompt, **prompt_kwargs)
@@ -45,25 +49,30 @@ def get_prompt_chain(
         model = model.with_structured_output(
             output_struct,
         )
+    parser = StrOutputParser() if output_struct is None else convert_json
 
-    chain = prompt_template | model
-
-    if is_output_parser:
-        chain = chain | StrOutputParser()
+    chain = prompt_template | model | parser
 
     return chain
 
 
 def get_chat_chain(
-    prompts: list[tuple[str, str]],
+    prompt: str,
     prompt_kwargs: dict = {},
     agent_kwargs: dict = {},
+    output_struct: Optional[BaseModel] = None,
 ):
-    prompt_template = ChatPromptTemplate.from_template(prompts, **prompt_kwargs)
+    prompt_template = ChatPromptTemplate.from_template(prompt, **prompt_kwargs)
     model = get_agent(**agent_kwargs)
-    parser = StrOutputParser()
+
+    if output_struct is not None:
+        model = model.with_structured_output(
+            output_struct,
+        )
+    parser = StrOutputParser() if output_struct is None else convert_json
 
     chain = prompt_template | model | parser
+
     return chain
 
 
@@ -72,13 +81,27 @@ class MultiTernChain:
         self,
         system_prompt: str,
         limit_turn: int = 20,
-        **kwargs,
+        agent_kwargs: dict = {},
+        output_struct: Optional[BaseModel] = None,
+        history_key: Optional[str] = None,
     ) -> None:
         self.system_prompt = system_prompt
         self.limit_turn = limit_turn
+        self.structed = output_struct is not None
 
-        self.model = get_agent(**kwargs)
-        self.parser = StrOutputParser()
+        if self.structed and history_key is None:
+            raise ValueError("structed agent must have `history_key`")
+        if not self.structed and history_key is not None:
+            raise ValueError("unstructed agent don't have `history_key`")
+
+        self.model = get_agent(**agent_kwargs)
+        if output_struct is not None:
+            self.model = self.model.with_structured_output(
+                output_struct,
+            )
+        self.parser = StrOutputParser() if output_struct is None else convert_json
+        self.history_key = history_key
+
         self.chain = None
         self.clear_history()
 
@@ -127,31 +150,34 @@ class MultiTernChain:
         init_result = init_chain.invoke(self.chain.first.messages[0].prompt.template)
         # print(init_result)
 
-        self.__chat_history.append(AIMessage(content=convert_json(init_result)["context"]))
+        hist = init_result[self.history_key] if self.structed else init_result
+
+        self.__chat_history.append(AIMessage(content=hist))
         return init_result
 
     def get_turn_limit_prompt(self) -> str:
         limit = self.limit_turn - len(self.chat_history) // 2
-        return f"\n\nAnswer in JSON format, and Try to end the conversation within {max(limit, 1)} turns."
+        return f"\n\nTry to end the conversation within {max(limit, 1)} turns."
 
-    def get_answer_stream(self, input_text: str):
-        if self.chain is None:
-            raise RuntimeError("chain must be init before answer, through `set_system_prompt()`")
+    # def get_answer_stream(self, input_text: str):
+    #     # TODO: typing_extensions 로 바꾸고 스트리밍 구현
+    #     if self.chain is None:
+    #         raise RuntimeError("chain must be init before answer, through `set_system_prompt()`")
 
-        response = ""
-        for chunk in self.chain.stream(
-            {
-                "message": HumanMessage(content=input_text + self.get_turn_limit_prompt()),
-                "chat_history": self.__chat_history,
-            },
-            # config={"metadata": {"conversation_id": conversation_id}},
-        ):
-            yield chunk
-            response += chunk
-        self.__chat_history += [
-            HumanMessage(content=input_text),
-            AIMessage(content=convert_json(response)["context"]),
-        ]
+    #     response = ""
+    #     for chunk in self.chain.stream(
+    #         {
+    #             "message": HumanMessage(content=input_text + self.get_turn_limit_prompt()),
+    #             "chat_history": self.__chat_history,
+    #         },
+    #         # config={"metadata": {"conversation_id": conversation_id}},
+    #     ):
+    #         yield chunk
+    #         response += chunk
+    #     self.__chat_history += [
+    #         HumanMessage(content=input_text),
+    #         AIMessage(content=convert_json(response)["context"]),
+    #     ]
 
     def get_answer(self, input_text: str):
         if self.chain is None:
@@ -163,9 +189,12 @@ class MultiTernChain:
                 "chat_history": self.__chat_history,
             }
         )
+
+        hist = response[self.history_key] if self.structed else response
+
         # print(response)
         self.__chat_history += [
             HumanMessage(content=input_text),
-            AIMessage(content=convert_json(response)["context"]),
+            AIMessage(content=hist),
         ]
         return response

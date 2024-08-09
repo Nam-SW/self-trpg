@@ -7,7 +7,7 @@ from agents.summarizer import summarizer
 from agents.settlement_manager import settlement_manager
 
 from utils.user_info import load_story, save_user_info
-from utils.utils import convert_json, try_n
+from utils.utils import try_n
 
 
 def send_in_scope(role, msg):
@@ -81,7 +81,7 @@ def wrapper(story_name: str) -> callable:
                             "user_info": play_info["user_info"],
                         }
                     )
-                    res = convert_json(try_n(storyteller.init_new_session))
+                    res = try_n(storyteller.init_new_session)
                     msg = res["context"] + "\n\n<행동 예시>"
                     for i, action in enumerate(res["example_actions"]):
                         msg += f"\n{i + 1}. {action}"
@@ -94,7 +94,7 @@ def wrapper(story_name: str) -> callable:
                 else:
                     send_in_scope("user", prompt)
 
-                    res = try_n(lambda: convert_json(storyteller.get_answer(prompt)))
+                    res = try_n(storyteller.get_answer, [prompt])
                     msg = res["context"]
                     if not res["is_end"]:
                         msg += "\n\n<행동 예시>"
@@ -114,9 +114,7 @@ def wrapper(story_name: str) -> callable:
                 play_info["chat_history"].append([])
 
                 # 요약
-                summary = convert_json(
-                    summarizer.invoke({"story_context": storyteller.chat_history})
-                )
+                summary = summarizer.invoke({"story_context": storyteller.chat_history})
                 send_in_scope("ai", "사건 정리: " + summary["summary"])
                 play_info["event_history"].append(summary["summary"])
 
@@ -127,7 +125,6 @@ def wrapper(story_name: str) -> callable:
                         "story_context": storyteller.chat_history,
                     }
                 )
-                reward = convert_json(reward)
                 # 최대 체력 등 먼저 처리해야하는 값들
                 for key in ["max_hp", "max_mental"]:
                     if key in reward:

@@ -48,6 +48,5 @@ user_template = """**사건 전 유저 정보**
 settlement_manager = get_prompt_chain(
     f"{system_prompt}\n\n{user_template}",
     prompt_kwargs={"template_format": "mustache"},
-    is_output_parser=False,
     output_struct=SettlementResponseStruct,
 )

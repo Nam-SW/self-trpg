@@ -40,6 +40,5 @@ user_template = """**이야기의 세계관**
 
 role_manager = get_prompt_chain(
     f"{system_prompt}\n\n{user_template}",
-    is_output_parser=False,
     output_struct=RoleManagerResponseStruct,
 )
