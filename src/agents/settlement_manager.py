@@ -45,8 +45,9 @@ user_template = """**사건 전 유저 정보**
 {{story_context}}"""
 
 
-settlement_manager = get_prompt_chain(
-    f"{system_prompt}\n\n{user_template}",
-    prompt_kwargs={"template_format": "mustache"},
-    output_struct=SettlementResponseStruct,
-)
+def get_settlement_manager():
+    return get_prompt_chain(
+        f"{system_prompt}\n\n{user_template}",
+        prompt_kwargs={"template_format": "mustache"},
+        output_struct=SettlementResponseStruct,
+    )

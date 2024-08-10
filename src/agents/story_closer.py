@@ -1,7 +1,3 @@
-"""
-story_closer
-"""
-
 from agents.agent import get_prompt_chain
 
 
@@ -23,4 +19,5 @@ system_prompt = """당신은 세계를 모험하는 이야기를 다루는 이�
 {{#is_old}}\n\n이런, 이 유저는 나이를 너무 많이 먹어 여정이 끝났었군요. 유저는 마지막 기억 이후 죽었나요, 살았나요? 뒷이야기도 같이 이야기하면 좋을 것 같네요.{{/is_old}}{{^is_old}}{{/is_old}}"""
 
 
-story_closer = get_prompt_chain(system_prompt, prompt_kwargs={"template_format": "mustache"})
+def get_story_closer():
+    return get_prompt_chain(system_prompt, prompt_kwargs={"template_format": "mustache"})

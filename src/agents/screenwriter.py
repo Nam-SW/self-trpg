@@ -1,7 +1,3 @@
-"""
-main worldview writer
-"""
-
 from agents.agent import get_prompt_chain
 
 
@@ -11,4 +7,6 @@ system_prompt = """당신은 유저가 모험할 세계의 기본적인 세계�
 섹션을 나눠 목록 형태로 읽기 쉽게 작성하고, 추가적인 설명은 생략합니다. 입력한 정보는 작성하지 마세요."""
 user_template = "**메인 세계관**: {theme}\n**서브 키워드**: {keywords}"
 
-screenwriter = get_prompt_chain(f"{system_prompt}\n\n{user_template}")
+
+def get_screenwriter():
+    return get_prompt_chain(f"{system_prompt}\n\n{user_template}")

@@ -38,7 +38,9 @@ user_template = """**이야기의 세계관**
 **주인공 키워드**
 {charactor_keywords}"""
 
-role_manager = get_prompt_chain(
-    f"{system_prompt}\n\n{user_template}",
-    output_struct=RoleManagerResponseStruct,
-)
+
+def get_role_manager():
+    return get_prompt_chain(
+        f"{system_prompt}\n\n{user_template}",
+        output_struct=RoleManagerResponseStruct,
+    )
