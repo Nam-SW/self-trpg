@@ -38,11 +38,21 @@ if st.session_state["authentication_status"]:
     authenticator.logout()
 
     pages = {
-        "새 이야기 시작하기": [  # TODO: 페이지 관리 섹션으로 컨셉 변경?
-            st.Page("./subpages/new_story.py", title="새 이야기 만들기", icon="🔥"),
-            # TODO: 이야기 삭제할 수 있도록?
+        "⚙️책장 관리": [  # TODO: 페이지 관리 섹션으로 컨셉 변경?
+            st.Page(
+                "./subpages/new_story.py",
+                title="새 이야기 만들기",
+                url_path="new_story",
+                icon="📝",
+            ),
+            st.Page(
+                "./subpages/manage_story.py",
+                title="이야기 관리하기",
+                url_path="manage_story",
+                icon="📊",
+            ),
         ],
-        "이어서 이야기 읽기": [
+        "📚이야기들": [
             st.Page(wrapper(story_name), title=story_name, url_path=f"story_{i}")
             for i, story_name in enumerate(get_story_list(st.session_state["username"]))
         ],
@@ -58,6 +68,7 @@ else:
 
     with login_tab:
         # Creating a login widget
+        st.button("새로고침")
         try:
             authenticator.login(
                 fields={

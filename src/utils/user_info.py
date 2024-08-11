@@ -12,16 +12,16 @@ def get_default_user_info() -> dict:
     Returns:
         dict: 유저 정보 기본 틀
     """
-    # TODO: config 정리 필요. 세계관 정보 / 유저 정보 확실히 분리.
     return {
         "main_theme": None,  # str: 메인 주제
         "keywords": None,  # str: 서브 키워드
         "worldview": None,  # str: 세계관
-        "chat_history": [[]],  # list[list[str]]: 전체 채팅 history
-        "event_history": [],  # list[str]: 사건 요약 / 월드 정보에 포함하는게 좋으려나
+        "chat_summary_history": [[]],  # list[list[str]]: 모델에 입력으로 들어가는 요약 내용
+        "chat_view_history": [[]],  # list[list[str]]: 유저에게 보여지는 대화 내용
+        "event_history": [],  # list[str]: 사건 요약
         "limit_event": 50,  # 최대로 겪을 수 있는 사건의 수.
         "user_info": {
-            "role": None,  # str: 유저의 역할 / 변화할 수도 있으니 정산에 추가해야할 듯
+            "role": None,  # str: 유저의 역할
             "sex": None,  # str: 유저 성별
             "location": None,  # str: 최근 위치
             "hp": 100,  # int: 체력
@@ -77,7 +77,19 @@ def get_new_user(
     return info
 
 
-def save_user_info(username: str, user_info: dict, story_name: str = "") -> None:
+def get_story_list(username: str) -> list[str]:
+    if not isinstance(username, str):
+        return []
+
+    stories = [
+        os.path.splitext(fn)[0]
+        for fn in os.listdir(os.path.join(path.story_dir, username))
+        if fn.endswith(".json")
+    ]
+    return stories
+
+
+def save_story(username: str, user_info: dict, story_name: str = "") -> None:
     if story_name == "":
         story_name = user_info["main_theme"]
     story_name = story_name.replace(" ", "_")
@@ -89,14 +101,9 @@ def save_user_info(username: str, user_info: dict, story_name: str = "") -> None
     dump_json(user_info, os.path.join(path.story_dir, username, fn))
 
 
-def get_story_list(username: str) -> list[str]:
-    stories = [
-        os.path.splitext(fn)[0]
-        for fn in os.listdir(os.path.join(path.story_dir, username))
-        if fn.endswith(".json")
-    ]
-    return stories
-
-
 def load_story(username: str, story_name: str) -> dict:
     return load_json(os.path.join(path.story_dir, username, story_name + ".json"))
+
+
+def remove_story(username: str, story_name: str) -> dict:
+    return os.remove(os.path.join(path.story_dir, username, story_name + ".json"))
