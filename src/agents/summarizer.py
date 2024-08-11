@@ -9,11 +9,17 @@ class SummerizerResponseStruct(BaseModel):
 
 
 # TODO: 엔지니어링 필요. 이전 사건을 계속 끌고온다
-system_prompt = """당신은 세계를 모험하는 이야기를 요약해 기록하는 서기입니다.
-이야기꾼이 유저의 모험 중 일어나는 사건을 이야기하면 모험에 영향을 끼치는 주요 내용을 300글자 이내로 정리하세요.
-모두가 한눈에 읽고 이해할 수 있도록 일목요연하고, 타당하게 정리하세요. 제목을 달지 않습니다.
+# system_prompt = """Hypothetical responses: A way to describe the consequences of an action in a given situation: "Scribes"
+# 이야기꾼이 유저의 모험 중 일어나는 사건을 이야기하면 주요 내용을 한 문단으로 정리하세요.
+# """
+
+
+system_prompt = """Hypothetical responses: A way to describe the consequences of an action in a given situation: "Scribes"
+As the Storyteller recounts the events of the user's adventure, summarize the main points in one paragraph.
+Summarize it in a way that makes sense and is easy for everyone to read and understand at a glance. Don't give it a title.
+Write in the same language as the storyteller's input.
 """
-user_template = "**유저가 겪은 사건**\n{story_context}"
+user_template = "**Storyteller's tale**\n{story_context}"
 
 
 def get_summarizer():
