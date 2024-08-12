@@ -19,9 +19,12 @@ class StorytellerResponseStruct(BaseModel):
         description=(
             "Rewrite the 'plot' entry you've created in a detailed, long, novel-like way. Describe the situation vividly. If there are words or actions of the characters, write them as well.\n"
             ' - Do not directly state what the user said, but indirectly express it with "You said ~~". Also write what the user should feel or think, such as "You feel that".\n'
-            " - Write from the Storyteller's point of view. Maintain the tone of the Storyteller.\n"
-            " - Don't write information that isn't in the plot. It's about making your writing more polished in expression or style.\n"
-            "- It's okay to use violent or crude language. Strong words will make users more enthusiastic.\n"
+            " - Write from the Storyteller's perspective. Write in a Storyteller's tone. It's okay to make the occasional joke, ask a lighthearted question, and, of course, swear or criticize.\n"
+            " - Don't write information that isn't in the 'plot'. Don't advance the story further than the 'plot'. You're just rewriting the wording or style to make it more polished.\n"
+            " - Be very detailed and vivid in describing the body parts of users or bystanders, their behavior, and what is being done to them. Include swearing and profanity if necessary.\n"
+            " - Flesh out the psychological descriptions of all your characters to make them feel like they're experiencing it firsthand.\n"
+            " - It's okay to use violent or crude language. Strong words will make users more enthusiastic.\n"
+            " - Each paragraph consists of one or more sentences. Write fewer than 10 paragraphs. Don't repeat yourself.\n"
             "Write in the same language as the user's input."
         ),
     )
@@ -30,7 +33,7 @@ class StorytellerResponseStruct(BaseModel):
         description="The actions to be given as examples. Returns None if the event has ended and no choices are needed.",
     )
     is_end: bool = Field(
-        description="A field that explicitly indicates whether the case is over. Exit frequently so that no single event gets too long."
+        description="Explicitly write whether the case is closed based on the 'plot' entry. Terminate frequently so that no single event gets too long."
         # description="사건이 종료되었는지를 명시적으로 작성합니다. 자주 종료하여 하나의 사건이 너무 길어지지 않도록 하세요."
     )
 
