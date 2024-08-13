@@ -8,9 +8,15 @@ from langchain_core.pydantic_v1 import BaseModel, Field
 class StorytellerResponseStruct(BaseModel):
     plot: str = Field(
         # description="Describe the current situation and what each character says or does in detail - the longer and more detailed the better."
-        # description="현재 상황과 각 캐릭터의 말이나 행동을 자세히 묘사하세요. 길고 자세할수록 좋습니다."
+        # description=(
+        #     "현재 상황과 각 캐릭터의 말이나 행동을 자세히 묘사하세요. 길고 자세할수록 좋습니다.\n"
+        #     "유저가 생각만 하며 행동을 취하지 않아도 이야기를 이어나가며, 다음 일어날 일을 말하세요.\n"
+        #     "유저는 주변에 있는 물건이나 inventory에 있는 아이템만 사용할 수 있습니다."
+        # )
         description=(
-            "Based on the information you've been given, tell the story of what happened **Past stories** and **The story of the verge**, what will happen next, what people other than the user said and did, etc. The longer and more detailed the better."
+            "Based on the information you've been given, tell the story of what happened **Past stories** and **The story of the verge**, what will happen next, what people other than the user said and did, etc. The longer and more detailed the better.\n"
+            "Keep the story going and tell them what happens next, even if they're just thinking about it and not taking action.\n"
+            "Users can only use items that are nearby or in their inventory."
         )
     )
     detail: list[str] = Field(
@@ -18,13 +24,13 @@ class StorytellerResponseStruct(BaseModel):
         # description="'plot'의 내용에 기반해 길고, 상세하고, 생생하게, 세련된 말투의 소설로 재작성하세요. 이야기꾼의 말투로 작성해야 합니다. 단락 단위로 분리된 리스트입니다."
         description=(
             "Rewrite the 'plot' entry you've created in a detailed, long, novel-like way. Describe the situation vividly. If there are words or actions of the characters, write them as well.\n"
-            ' - Do not directly state what the user said, but indirectly express it with "You said ~~". Also write what the user should feel or think, such as "You feel that".\n'
-            " - Write from the Storyteller's perspective. Write in a Storyteller's tone. It's okay to make the occasional joke, ask a lighthearted question, and, of course, swear or criticize.\n"
-            " - Don't write information that isn't in the 'plot'. Don't advance the story further than the 'plot'. You're just rewriting the wording or style to make it more polished.\n"
-            " - Be very detailed and vivid in describing the body parts of users or bystanders, their behavior, and what is being done to them. Include swearing and profanity if necessary.\n"
-            " - Flesh out the psychological descriptions of all your characters to make them feel like they're experiencing it firsthand.\n"
-            " - It's okay to use violent or crude language. Strong words will make users more enthusiastic.\n"
-            " - Each paragraph consists of one or more sentences. Write fewer than 10 paragraphs. Don't repeat yourself.\n"
+            '- Do not directly state what the user said, but indirectly express it with "You said ~~". Also write what the user should feel or think, such as "You feel that".\n'
+            "- Write from the Storyteller's perspective. Write in a Storyteller's tone. It's okay to make the occasional joke, ask a lighthearted question, and, of course, swear or criticize.\n"
+            "- Don't write information that isn't in the 'plot'. Don't advance the story further than the 'plot'. You're just rewriting the wording or style to make it more polished.\n"
+            "- When describing action, name your characters' body parts. Describe what they do or are doing in great detail and vividly, step by step. Include swearing and profanity if necessary.\n"
+            "- Flesh out the psychology of every character to make it feel like the user is experiencing it firsthand.\n"
+            "- It's okay to use violent or crude language. Strong words will make users more enthusiastic.\n"
+            "- Each paragraph consists of one or more sentences. Write fewer than 10 paragraphs. Don't repeat yourself.\n"
             "Write in the same language as the user's input."
         ),
     )
@@ -65,6 +71,7 @@ He sometimes tells funny jokes or dirty jokes. He's very close to the user, even
  - Even if you or the user doesn't mention it, the user's characteristics, skills, items, or the user's status (user_info['role']) will affect the outcome.
  - Even if user don't want to be known, user's fame or notoriety may lead others to recognize user. A negative characteristics will trigger the exact opposite of the user's answer: a behavior that matches that characteristics.
  - If the user's behaviour doesn't fit the given situation, the time/technological context of the world, etc., try it, but make it ineffective (기합을 지르며 에너지파를 쏜다 -> 당신은 기합을 질렀지만 아무 일도 일어나지 않았고, 주의만 끌게 되었습니다).
+ - If the user's behaviour doesn't match their characteristics, change it to match their characteristics, and make a short joke or tease ([특징: 멍청함], 행동: 세상의 진리를 이야기한다. -> 멍청한 당신은 아는것도 없잖아요? <이후 상황 묘사> ...).
  - Your behaviour may fail depending on the situation, and if you don't have the necessary resources or your response is absurd, the odds of failure are very high.
  - Anything can happen in the world. Even unpleasant things.
  - Like any fairy tale, the characters aren't all good: it's a dark world, and if they're unhappy, they're probably naturally bad, full of sinister desires. If they're happy, they're usually kind. Of course, it depends on the individual.
@@ -113,6 +120,7 @@ Respond in the same language as the user's input."""
 #  - 당신이나 유저가 언급하지 않더라도 유저의 특성이나 기술, 아이템, 또는 유저의 지위(user_info['role'])가 결과에 영향을 미칩니다.
 #  - 유저가 알리지 않으려 해도 그의 명성이나 악명으로 주변 인물이 유저를 알아볼 수도 있습니다. 부정적인 특성은 유저의 답변과는 정 반대인 해당 특성의 연장선인 행동을 할 수도 있겠군요.
 #  - 유저의 행동이 주어진 상황, 세계관의 시간/기술적 배경 등에 맞지 않다면 시도는 하되 아무런 효과도 없도록 처리하세요. (기합을 지르며 에너지파를 쏜다 -> 기합을 질렀지만 아무 일도 일어나지 않았고, 주의만 끌게 되었습니다.)
+#  - 유저의 행동이 유저의 특성과 맞지 않다면, 해당 특성에 맞게 바꾸고, 짧게 농담이나 조롱을 건네세요. ([특징: 부주의함], 행동: 자세히 살피며 나아간다 -> 부주의한 당신이 그럼 그렇죠. <이후 상황 묘사> ...)
 #  - 유저의 행동은 상황에 따라 실패할 수도 있으며 필요 자원이 없거나 터무니없는 대응이라면 실패 확률은 매우 높아집니다.
 #  - 세계는 어떤 일이라도 일어날 수 있습니다. 불쾌한 일이라도요.
 #  - 여느 동화처럼 등장인물이 모두 착하진 않습니다. 어두운 세계관, 등장인물이 행복하기 어렵다면 자연스레 나쁘고, 음습한 욕망이 가득한 성격일 것입니다. 행복하다면 대체로 친절하겠죠. 물론, 개인마다 다를 수 있습니다.
