@@ -42,6 +42,8 @@ def wrapper(story_name: str) -> callable:
                 if len(get_state("play_info")["chat_summary_history"]) >= 2
                 else []
             ),
+            "now_turn": len(get_state("play_info")["event_history"]),
+            "max_turn": get_state("play_info")["limit_event"],
         }
     )
     get_state("storyteller").chat_history = get_state("play_info")["chat_summary_history"][-1]
@@ -108,6 +110,8 @@ def wrapper(story_name: str) -> callable:
                                 if len(get_state("play_info")["chat_summary_history"]) >= 2
                                 else []
                             ),
+                            "now_turn": len(get_state("play_info")["event_history"]),
+                            "max_turn": get_state("play_info")["limit_event"],
                         }
                     )
                     res = try_n(get_state("storyteller").init_new_session)
