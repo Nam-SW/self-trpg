@@ -25,4 +25,4 @@ model_type = cfg.model.type
 model_args = OmegaConf.to_object(cfg.model.args)
 
 path = cfg.path
-os.makedirs(path.story_dir, exist_ok=True)
+os.makedirs(path.play_info_dir, exist_ok=True)

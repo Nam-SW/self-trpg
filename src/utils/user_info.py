@@ -83,7 +83,7 @@ def get_story_list(username: str) -> list[str]:
 
     stories = [
         os.path.splitext(fn)[0]
-        for fn in os.listdir(os.path.join(path.story_dir, username))
+        for fn in os.listdir(os.path.join(path.play_info_dir, username))
         if fn.endswith(".json")
     ]
     return stories
@@ -95,15 +95,15 @@ def save_story(username: str, user_info: dict, story_name: str = "") -> None:
     story_name = story_name.replace(" ", "_")
 
     fn = story_name + ".json"
-    if not os.path.isfile(os.path.join(path.story_dir, username, fn)):
+    if not os.path.isfile(os.path.join(path.play_info_dir, username, fn)):
         time = dt.datetime.now().strftime("%y%m%d%H%M%S_")
         fn = time + fn
-    dump_json(user_info, os.path.join(path.story_dir, username, fn))
+    dump_json(user_info, os.path.join(path.play_info_dir, username, fn))
 
 
 def load_story(username: str, story_name: str) -> dict:
-    return load_json(os.path.join(path.story_dir, username, story_name + ".json"))
+    return load_json(os.path.join(path.play_info_dir, username, story_name + ".json"))
 
 
 def remove_story(username: str, story_name: str) -> dict:
-    return os.remove(os.path.join(path.story_dir, username, story_name + ".json"))
+    return os.remove(os.path.join(path.play_info_dir, username, story_name + ".json"))
