@@ -84,6 +84,7 @@ class MultiTernChain:
         agent_kwargs: dict = {},
         output_struct: Optional[BaseModel] = None,
         history_key: Optional[str] = None,
+        user_prefix: str = "",
     ) -> None:
         self.system_prompt = system_prompt
         self.limit_turn = limit_turn
@@ -101,6 +102,7 @@ class MultiTernChain:
             )
         self.parser = StrOutputParser() if output_struct is None else convert_json
         self.history_key = history_key
+        self.user_prefix = user_prefix
 
         self.chain = None
         self.clear_history()
@@ -108,7 +110,11 @@ class MultiTernChain:
     @property
     def chat_history(self):
         return [
-            {"role": "ai" if isinstance(m, AIMessage) else "user", "message": m.content}
+            (
+                {"role": "ai", "message": m.content}
+                if isinstance(m, AIMessage)
+                else {"role": "user", "message": m.content[len(self.user_prefix) :]}
+            )
             for m in self.__chat_history
         ]
 
@@ -121,7 +127,7 @@ class MultiTernChain:
             if log["role"] == "ai":
                 self.__chat_history.append(AIMessage(log["message"]))
             elif log["role"] == "user":
-                self.__chat_history.append(HumanMessage(log["message"]))
+                self.__chat_history.append(HumanMessage(self.user_prefix + log["message"]))
             else:
                 raise KeyError(f"`{log['role']}` is unexpected role.")
 
@@ -183,6 +189,7 @@ class MultiTernChain:
         if self.chain is None:
             raise RuntimeError("chain must be init before answer, through `set_system_prompt()`")
 
+        input_text = self.user_prefix + input_text
         response = self.chain.invoke(
             {
                 "message": input_text + self.get_turn_limit_prompt(),
