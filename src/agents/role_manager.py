@@ -25,7 +25,7 @@ class RoleManagerResponseStruct(BaseModel):
     )
     inventory: list[str] = Field(description="보유한 아이템입니다.")
     start_event: str = Field(
-        description="이야기의 시작이 될 때의 사건입니다. 300글자 사이로 작성합니다. 주인공의 이름을 직접적으로 언급하지 마세요."
+        description="이야기의 시작이 될 때의 사건입니다. 300글자 사이로 작성합니다. 주인공 혹은 유저를 '당신'이라고 지칭하세요."
     )
 
 
