@@ -83,6 +83,9 @@ def wrapper(story_name: str) -> callable:
                 get_state("play_info")["chat_summary_history"][-1].append(
                     {"role": "ai", "message": ending}
                 )
+                get_state("play_info")["chat_view_history"][-1].append(
+                    {"role": "ai", "message": ending}
+                )
                 save_story(st.session_state["username"], get_state("play_info"), story_name)
 
         # 메인 채팅 뷰
