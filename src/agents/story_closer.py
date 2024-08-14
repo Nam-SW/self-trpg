@@ -30,7 +30,7 @@ It's okay to comfort him, it's okay to praise him, and conversely, it's okay to 
 
 **유저의 마지막 기억**
 {{last_event}}
-{{#is_old}}\n\nOops, this user has aged so much that their journey has come to an end. Did they die or live since the last memory? It would be nice to get some backstory.{{/is_old}}{{^is_old}}{{/is_old}}
+{{#is_old}}\n\nOops, this user has used up their allotted time. Did they die or live since the last memory? It would be nice to get some backstory.{{/is_old}}{{^is_old}}{{/is_old}}
 
 Rewrite the hypothetical reaction in great detail from the perspective of the Storyteller presented.
 Respond in the same language as the user's input."""
