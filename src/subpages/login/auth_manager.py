@@ -138,7 +138,7 @@ class AuthenticationManager:
             return False
         if token:
             if not token["username"] in self.user_dict:
-                raise LoginError("가입하지 않은 아이디")
+                raise LoginError("가입하지 않은 아이디입니다.")
             st.session_state["username"] = token["username"]
             st.session_state["authentication_status"] = True
             self.user_dict[token["username"]]["logged_in"] = True

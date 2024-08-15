@@ -14,9 +14,9 @@ from subpages.story_view import wrapper
 with open(path.auth_config_dir, "r", encoding="utf-8") as file:
     config = yaml.load(file, Loader=yaml.loader.SafeLoader)
 
-
 authenticator = Authenticate(**config)
 
+# TODO: authentication_status 열거형으로 변경
 if st.session_state["authentication_status"]:
     authenticator.logout(location="sidebar")
 
@@ -49,7 +49,6 @@ else:
 
     with login_tab:
         # Creating a login widget
-        st.button("새로고침")
         try:
             authenticator.login()
             if st.session_state["authentication_status"] is False:

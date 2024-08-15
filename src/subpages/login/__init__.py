@@ -28,7 +28,11 @@ class Authenticate:
         if not st.session_state["authentication_status"]:
             token = self.cookie_controller.get_cookie()
             if token:
-                self.authentication_controller.login(token=token)
+                try:
+                    self.authentication_controller.login(token=token)
+                except Exception as e:
+                    self.cookie_controller.delete_cookie()
+                    st.write("로그인 정보가 올바르지 않습니다. 페이지를 새로고침 해주세요.")
 
     def login(
         self,
