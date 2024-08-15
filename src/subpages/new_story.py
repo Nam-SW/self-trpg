@@ -35,9 +35,7 @@ st.title("새로운 이야기")
 st.write("새로운 이야기를 시작하기 앞서, 모험을 떠날 이야기를 정해봅시다.")
 st.write("이야기를 정하기 위해 탐험할 세계의 주제와 세부 키워드를 입력해주세요.")
 
-story_name = st.text_input("이야기의 이름", placeholder="ex) 좀비고려")
-main_theme = st.text_input("세계의 주제", placeholder="ex) 좀비(강시) 아포칼립스")
-keywords = st.text_area("세부 키워드", placeholder="ex) 강시 역병, 고려 중기, 화약, 왕궁, 왕족")
+story_name = st.text_input("이야기의 제목")
 limit_event = st.slider("이야기의 길이", 10, 200, 50)
 
 
@@ -58,7 +56,13 @@ if st.button("이야기 시작하기"):
 tab1, tab2 = st.tabs(["세계관 만들기", "캐릭터 설정하기"])
 
 with tab1:
-    if st.button("세계관 작성하기"):
+    worldview_form = st.form(key="worldview_form")
+    main_theme = worldview_form.text_input("세계의 주제", placeholder="ex) 좀비(강시) 아포칼립스")
+    keywords = worldview_form.text_area(
+        "세부 키워드", placeholder="ex) 강시 역병, 고려 중기, 화약, 왕궁, 왕족"
+    )
+
+    if worldview_form.form_submit_button("이야기 작성하기"):
         st.session_state["info"]["main_theme"] = main_theme
         st.session_state["info"]["keywords"] = keywords
         if (
@@ -76,43 +80,23 @@ with tab1:
                 )
             st.session_state["info"]["worldview"] = worldview
     st.write(st.session_state["info"]["worldview"])
-    # st.session_state["info"]["worldview"] = "테스트")
-
-    # if st.session_state["info"]["worldview") != "":
-    #     st.write(st.session_state["info"]["worldview"))
 
 with tab2:
     if st.session_state["info"]["worldview"] == "":
         st.warning("먼저 이야기의 세계관을 결정해야 합니다.")
 
     else:
-        charactor_keywords = st.text_input("주인공 키워드")
-        if st.button("재설정"):
+        start_form = st.form(key="start_form")
+        charactor_keywords = start_form.text_input("주인공 키워드", placeholder="ex) 남성, 부랑자")
 
-            # st.session_state["info"]["sex"] = rd.choice(["남성", "여성"]))
+        if start_form.form_submit_button("이야기 작성하기"):
             with st.spinner("주인공을 정하는 중입니다..."):
                 start_info = role_manager.invoke(
                     {
                         "worldview": st.session_state["info"]["worldview"],
                         "charactor_keywords": charactor_keywords,
-                        # "sex": st.session_state["info"]["sex"),
                     }
                 )
-            # start_info = convert_json(result)
-
-            # start_info = {
-            #     "sex": str(rd.randint(0, 100000)),
-            #     "role": str(rd.randint(0, 100000)),
-            #     "location": str(rd.randint(0, 100000)),
-            #     "hp": rd.randint(0, 100000),
-            #     "mental": rd.randint(0, 100000),
-            #     "max_hp": rd.randint(0, 100000),
-            #     "max_mental": rd.randint(0, 100000),
-            #     "characteristics": [str(rd.randint(0, 100000))],
-            #     "skills": [str(rd.randint(0, 100000))],
-            #     "inventory": [str(rd.randint(0, 100000))],
-            #     "start_event": str(rd.randint(0, 100000)),
-            # }
 
             for k, v in start_info.items():
                 st.session_state["info"][k] = v
