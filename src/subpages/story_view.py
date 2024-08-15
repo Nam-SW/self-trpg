@@ -73,13 +73,14 @@ def wrapper(story_name: str) -> callable:
         if is_end:  # 엔딩
             # 만약 엔딩이 없다면
             if len(get_state("play_info")["chat_summary_history"][-1]) == 0:
-                ending = get_state("story_closer").invoke(
-                    {
-                        "story_context": get_state("play_info")["event_history"],
-                        "last_event": get_state("play_info")["chat_summary_history"][-1],
-                        "is_old": over_event_limit,
-                    }
-                )
+                with st.spinner("이야기를 마무리 짓는 중..."):
+                    ending = get_state("story_closer").invoke(
+                        {
+                            "story_context": get_state("play_info")["event_history"],
+                            "last_event": get_state("play_info")["chat_summary_history"][-1],
+                            "is_old": over_event_limit,
+                        }
+                    )
                 get_state("play_info")["chat_summary_history"][-1].append(
                     {"role": "ai", "message": ending}
                 )
@@ -117,7 +118,8 @@ def wrapper(story_name: str) -> callable:
                             "max_turn": get_state("play_info")["limit_event"],
                         }
                     )
-                    res = try_n(get_state("storyteller").init_new_session)
+                    with st.spinner("작성중..."):
+                        res = try_n(get_state("storyteller").init_new_session)
                     msg = "\n\n".join(res["detail"])
                     if res["example_actions"] is not None and len(res["example_actions"]):
                         msg += "\n\n<행동 예시>"
@@ -137,7 +139,8 @@ def wrapper(story_name: str) -> callable:
                 else:
                     send_in_scope("user", prompt)
 
-                    res = try_n(get_state("storyteller").get_answer, [prompt])
+                    with st.spinner("작성중..."):
+                        res = try_n(get_state("storyteller").get_answer, [prompt])
                     msg = "\n\n".join(res["detail"])
                     if (
                         not res["is_end"]
@@ -170,19 +173,21 @@ def wrapper(story_name: str) -> callable:
                 get_state("play_info")["chat_view_history"].append([])
 
                 # 요약
-                summary = get_state("summarizer").invoke(
-                    {"story_context": get_state("storyteller").chat_history}
-                )
+                with st.spinner("사건을 마무리하는 중..."):
+                    summary = get_state("summarizer").invoke(
+                        {"story_context": get_state("storyteller").chat_history}
+                    )
                 send_in_scope("ai", "사건 정리: " + summary)
                 get_state("play_info")["event_history"].append(summary)
 
                 # 정산
-                reward = get_state("settlement_manager").invoke(
-                    {
-                        "user_info": get_state("play_info")["user_info"],
-                        "story_context": get_state("storyteller").chat_history,
-                    }
-                )
+                with st.spinner("사건 뒷정리 중..."):
+                    reward = get_state("settlement_manager").invoke(
+                        {
+                            "user_info": get_state("play_info")["user_info"],
+                            "story_context": get_state("storyteller").chat_history,
+                        }
+                    )
                 # 최대 체력 등 먼저 처리해야하는 값들
                 for key in ["max_hp", "max_mental"]:
                     if key in reward:

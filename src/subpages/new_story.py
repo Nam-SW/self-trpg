@@ -32,8 +32,8 @@ if not hasattr(st.session_state, "info"):
 
 st.title("새로운 이야기")
 
-st.text("새로운 이야기를 시작하기 앞서, 모험을 떠날 이야기를 정해봅시다.")
-st.text("이야기를 정하기 위해 탐험할 세계의 주제와 세부 키워드를 입력해주세요.")
+st.write("새로운 이야기를 시작하기 앞서, 모험을 떠날 이야기를 정해봅시다.")
+st.write("이야기를 정하기 위해 탐험할 세계의 주제와 세부 키워드를 입력해주세요.")
 
 story_name = st.text_input("이야기의 이름", placeholder="ex) 좀비고려")
 main_theme = st.text_input("세계의 주제", placeholder="ex) 좀비(강시) 아포칼립스")
@@ -67,15 +67,16 @@ with tab1:
         ):
             st.warning("주제와 키워드를 입력하세요.")
         else:
-            worldview = screenwriter.invoke(
-                {
-                    "theme": st.session_state["info"]["main_theme"],
-                    "keywords": st.session_state["info"]["keywords"],
-                }
-            )
+            with st.spinner("이야기를 쓰는 중입니다..."):
+                worldview = screenwriter.invoke(
+                    {
+                        "theme": st.session_state["info"]["main_theme"],
+                        "keywords": st.session_state["info"]["keywords"],
+                    }
+                )
             st.session_state["info"]["worldview"] = worldview
-            st.write(worldview)
-            # st.session_state["info"]["worldview"] = "테스트")
+    st.write(st.session_state["info"]["worldview"])
+    # st.session_state["info"]["worldview"] = "테스트")
 
     # if st.session_state["info"]["worldview") != "":
     #     st.write(st.session_state["info"]["worldview"))
@@ -89,13 +90,14 @@ with tab2:
         if st.button("재설정"):
 
             # st.session_state["info"]["sex"] = rd.choice(["남성", "여성"]))
-            start_info = role_manager.invoke(
-                {
-                    "worldview": st.session_state["info"]["worldview"],
-                    "charactor_keywords": charactor_keywords,
-                    # "sex": st.session_state["info"]["sex"),
-                }
-            )
+            with st.spinner("주인공을 정하는 중입니다..."):
+                start_info = role_manager.invoke(
+                    {
+                        "worldview": st.session_state["info"]["worldview"],
+                        "charactor_keywords": charactor_keywords,
+                        # "sex": st.session_state["info"]["sex"),
+                    }
+                )
             # start_info = convert_json(result)
 
             # start_info = {
