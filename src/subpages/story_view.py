@@ -119,13 +119,34 @@ def wrapper(story_name: str) -> callable:
                         }
                     )
                     with st.spinner("작성중..."):
-                        res = try_n(get_state("storyteller").init_new_session)
+                        res = try_n(
+                            get_state("storyteller").get_answer,
+                            [
+                                {
+                                    "previous_chat": (
+                                        (
+                                            get_state("play_info")["chat_view_history"][-2][-1][
+                                                "message"
+                                            ]
+                                            if len(get_state("play_info")["chat_view_history"]) > 1
+                                            else ""
+                                        )
+                                        if get_state("play_info")["chat_view_history"][-1] == []
+                                        else get_state("play_info")["chat_view_history"][-1][-1][
+                                            "message"
+                                        ]
+                                    ),
+                                    "action": "",
+                                }
+                            ],
+                        )
                     msg = "\n\n".join(res["detail"])
                     if res["example_actions"] is not None and len(res["example_actions"]):
                         msg += "\n\n<행동 예시>"
                         for i, action in enumerate(res["example_actions"]):
                             msg += f"\n{i + 1}. {action}"
 
+                    send_in_scope("ai", res["plot"])
                     send_in_scope("ai", msg)
                     get_state("play_info")["chat_summary_history"][-1] = get_state(
                         "storyteller"
@@ -140,7 +161,17 @@ def wrapper(story_name: str) -> callable:
                     send_in_scope("user", prompt)
 
                     with st.spinner("작성중..."):
-                        res = try_n(get_state("storyteller").get_answer, [prompt])
+                        res = try_n(
+                            get_state("storyteller").get_answer,
+                            [
+                                {
+                                    "previous_chat": get_state("play_info")["chat_view_history"][
+                                        -1
+                                    ][-1]["message"],
+                                    "action": prompt,
+                                }
+                            ],
+                        )
                     msg = "\n\n".join(res["detail"])
                     if (
                         not res["is_end"]
@@ -151,6 +182,7 @@ def wrapper(story_name: str) -> callable:
                         for i, action in enumerate(res["example_actions"]):
                             msg += f"\n{i + 1}. {action}"
 
+                    send_in_scope("ai", res["plot"])
                     send_in_scope("ai", msg)
                     get_state("play_info")["chat_summary_history"][-1] = get_state(
                         "storyteller"

@@ -83,17 +83,18 @@ class MultiTernChain:
         limit_turn: int = 20,
         agent_kwargs: dict = {},
         output_struct: Optional[BaseModel] = None,
-        history_key: Optional[str] = None,
-        user_prefix: str = "",
+        ai_history_key: Optional[str] = None,
+        user_template: str = "{prompt}",
+        user_history_key: str = "prompt",
     ) -> None:
         self.system_prompt = system_prompt
         self.limit_turn = limit_turn
         self.structed = output_struct is not None
 
-        if self.structed and history_key is None:
-            raise ValueError("structed agent must have `history_key`")
-        if not self.structed and history_key is not None:
-            raise ValueError("unstructed agent don't have `history_key`")
+        if self.structed and ai_history_key is None:
+            raise ValueError("structed agent must have `ai_history_key`")
+        if not self.structed and ai_history_key is not None:
+            raise ValueError("unstructed agent don't have `ai_history_key`")
 
         self.model = get_agent(**agent_kwargs)
         if output_struct is not None:
@@ -101,8 +102,9 @@ class MultiTernChain:
                 output_struct,
             )
         self.parser = StrOutputParser() if output_struct is None else convert_json
-        self.history_key = history_key
-        self.user_prefix = user_prefix
+        self.ai_history_key = ai_history_key
+        self.user_template = user_template
+        self.user_history_key = user_history_key
 
         self.chain = None
         self.clear_history()
@@ -113,7 +115,7 @@ class MultiTernChain:
             (
                 {"role": "ai", "message": m.content}
                 if isinstance(m, AIMessage)
-                else {"role": "user", "message": m.content[len(self.user_prefix) :]}
+                else {"role": "user", "message": m.content}
             )
             for m in self.__chat_history
         ]
@@ -127,7 +129,7 @@ class MultiTernChain:
             if log["role"] == "ai":
                 self.__chat_history.append(AIMessage(log["message"]))
             elif log["role"] == "user":
-                self.__chat_history.append(HumanMessage(self.user_prefix + log["message"]))
+                self.__chat_history.append(HumanMessage(log["message"]))
             else:
                 raise KeyError(f"`{log['role']}` is unexpected role.")
 
@@ -137,7 +139,8 @@ class MultiTernChain:
     def set_system_prompt(self, system_prompt_args: dict = {}):
         self.system_prompt_args = system_prompt_args
         sys_prompt = self.system_prompt.format(
-            **self.system_prompt_args, limit_turn=self.limit_turn
+            **self.system_prompt_args
+            # **self.system_prompt_args, limit_turn=self.limit_turn
         )
         prompt_template = ChatPromptTemplate.from_messages(
             [
@@ -156,7 +159,7 @@ class MultiTernChain:
         init_result = init_chain.invoke(self.chain.first.messages[0].prompt.template)
         # print(init_result)
 
-        hist = init_result[self.history_key] if self.structed else init_result
+        hist = init_result[self.ai_history_key] if self.structed else init_result
 
         self.__chat_history.append(AIMessage(content=hist))
         return init_result
@@ -185,11 +188,12 @@ class MultiTernChain:
     #         AIMessage(content=convert_json(response)["context"]),
     #     ]
 
-    def get_answer(self, input_text: str):
+    def get_answer(self, inputs: dict):
         if self.chain is None:
             raise RuntimeError("chain must be init before answer, through `set_system_prompt()`")
 
-        input_text = self.user_prefix + input_text
+        input_text = self.user_template.format(**inputs)
+        print(input_text + self.get_turn_limit_prompt())
         response = self.chain.invoke(
             {
                 "message": input_text + self.get_turn_limit_prompt(),
@@ -197,11 +201,11 @@ class MultiTernChain:
             }
         )
 
-        hist = response[self.history_key] if self.structed else response
+        hist = response[self.ai_history_key] if self.structed else response
 
         # print(response)
         self.__chat_history += [
-            HumanMessage(content=input_text),
+            HumanMessage(content=inputs[self.user_history_key]),
             AIMessage(content=hist),
         ]
         return response
