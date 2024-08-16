@@ -146,7 +146,7 @@ def wrapper(story_name: str) -> callable:
                         for i, action in enumerate(res["example_actions"]):
                             msg += f"\n{i + 1}. {action}"
 
-                    send_in_scope("ai", res["plot"])
+                    # send_in_scope("ai", res["plot"])
                     send_in_scope("ai", msg)
                     get_state("play_info")["chat_summary_history"][-1] = get_state(
                         "storyteller"
@@ -182,7 +182,7 @@ def wrapper(story_name: str) -> callable:
                         for i, action in enumerate(res["example_actions"]):
                             msg += f"\n{i + 1}. {action}"
 
-                    send_in_scope("ai", res["plot"])
+                    # send_in_scope("ai", res["plot"])
                     send_in_scope("ai", msg)
                     get_state("play_info")["chat_summary_history"][-1] = get_state(
                         "storyteller"
