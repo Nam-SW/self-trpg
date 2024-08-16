@@ -82,7 +82,7 @@ Storyteller shares all of the senses that the user sees, hears, tastes, and feel
 - Time passes even when “users” think and don't act. Remind yourself that time has passed and tell your next story.
 
 - Each paragraph consists of one or more sentences. Write between 2 and 10 paragraphs, but don't repeat the same content in paragraphs.
-- Don't describe what happened before, only what will happen next.
+- Don't describe the previous situation, only what will happen next.
 - Make it long, detailed, and vivid, like a novel, so that a large audience can read it and find it interesting.
 - Write in the same language as the user's input.
 """.strip(),
