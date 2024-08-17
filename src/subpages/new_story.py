@@ -4,7 +4,9 @@ import streamlit as st
 
 from agents.screenwriter import get_screenwriter
 from agents.role_manager import get_role_manager
-from utils.user_info import get_new_user, save_story
+from story_info import StoryInfoManager
+
+# from utils.user_info import get_new_user, save_story
 
 
 screenwriter = get_screenwriter()
@@ -26,7 +28,7 @@ if not hasattr(st.session_state, "info"):
         "characteristics": "",
         "skills": "",
         "inventory": "",
-        "start_event": "",
+        "prev_summary": "",
     }
 
 
@@ -45,8 +47,12 @@ if st.button("이야기 시작하기"):
         st.warning("이야기와 캐릭터를 생성한 후 결정할 수 있습니다.", icon="⚠️")
 
     else:
-        user_info = get_new_user(**st.session_state["info"])
-        save_story(st.session_state["username"], user_info, story_name)
+        story = StoryInfoManager(
+            st.session_state["username"], story_name, **st.session_state["info"]
+        )
+        story.save()
+        # user_info = get_new_user(**st.session_state["info"])
+        # save_story(st.session_state["username"], user_info, story_name)
         st.success(
             "생성이 완료되었습니다. 페이지를 새로고침하면 좌측에 생성한 모험의 책장이 생성됩니다.",
             icon="✅",
@@ -110,4 +116,4 @@ with tab2:
             st.write("특성: ", st.session_state["info"]["characteristics"])
             st.write("보유 기술: ", st.session_state["info"]["skills"])
             st.write("보유 아이템: ", st.session_state["info"]["inventory"])
-            st.write("시작 이야기: ", st.session_state["info"]["start_event"])
+            st.write("시작 이야기: ", st.session_state["info"]["prev_summary"])

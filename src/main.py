@@ -6,7 +6,8 @@ from subpages.login import Authenticate
 
 from config import path
 
-from utils.user_info import get_story_list
+from story_info import StoryInfoManager
+
 from subpages.story_view import wrapper
 
 
@@ -37,7 +38,9 @@ if st.session_state["authentication_status"]:
         ],
         "📚이야기들": [
             st.Page(wrapper(story_name), title=story_name, url_path=f"story_{i}")
-            for i, story_name in enumerate(get_story_list(st.session_state["username"]))
+            for i, story_name in enumerate(
+                StoryInfoManager.get_story_list(st.session_state["username"])
+            )
         ],
     }
 

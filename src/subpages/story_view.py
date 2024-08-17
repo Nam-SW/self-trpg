@@ -6,7 +6,7 @@ from agents.story_closer import get_story_closer
 from agents.summarizer import get_summarizer
 from agents.settlement_manager import get_settlement_manager
 
-from utils.user_info import load_story, save_story
+from story_info import StoryInfoManager
 from utils.utils import try_n
 
 
@@ -27,39 +27,35 @@ def wrapper(story_name: str) -> callable:
         st.session_state[story_name + "summarizer"] = get_summarizer()
     if not hasattr(st.session_state, story_name + "settlement_manager"):
         st.session_state[story_name + "settlement_manager"] = get_settlement_manager()
-    if not hasattr(st.session_state, story_name + "play_info"):
-        st.session_state[story_name + "play_info"] = load_story(
+    if not hasattr(st.session_state, story_name + "story_info"):
+        st.session_state[story_name + "story_info"] = StoryInfoManager.load(
             st.session_state["username"], story_name
         )
 
     get_state("storyteller").set_system_prompt(
         {
-            "worldview": get_state("play_info")["worldview"],
-            "event_history": get_state("play_info")["event_history"],
-            "user_info": get_state("play_info")["user_info"],
+            "worldview": get_state("story_info")["worldview"],
+            "event_history": get_state("story_info").get_story_summary(),
+            "user_info": get_state("story_info").get_user_info(),
             "last_chat": (
-                get_state("play_info")["chat_summary_history"][-2]
-                if len(get_state("play_info")["chat_summary_history"]) >= 2
+                get_state("story_info").get_event_summarized_history(-2)
+                if len(get_state("story_info")) >= 2
                 else []
             ),
-            "now_turn": len(get_state("play_info")["event_history"]),
-            "max_turn": get_state("play_info")["limit_event"],
+            "now_turn": len(get_state("story_info")),
+            "max_turn": get_state("story_info")["limit_event"],
         }
     )
-    get_state("storyteller").chat_history = get_state("play_info")["chat_summary_history"][-1]
+    get_state("storyteller").chat_history = get_state("story_info").get_event_summarized_history()
 
     def _page():
-        over_event_limit = (
-            len(get_state("play_info")["event_history"]) >= get_state("play_info")["limit_event"]
-        )
-        is_end = over_event_limit or get_state("play_info")["user_info"]["hp"] <= 0
 
         st.title(story_name.split("_", 1)[1].replace("_", " "))
         st.slider(
             "이야기 진행도",
             0,
-            get_state("play_info")["limit_event"],
-            len(get_state("play_info")["event_history"]),
+            get_state("story_info")["limit_event"],
+            len(get_state("story_info")),
             disabled=True,
         )
         tab_chat, tab_event_history, tab_user_info, tab_worldview = st.tabs(
@@ -67,142 +63,99 @@ def wrapper(story_name: str) -> callable:
         )
         inputs = st.chat_input(
             "텍스트를 입력하세요.",
-            disabled=is_end,
+            disabled=get_state("story_info").is_story_end(),
         )
 
-        if is_end:  # 엔딩
+        if get_state("story_info").is_story_end():  # 엔딩
             # 만약 엔딩이 없다면
-            if len(get_state("play_info")["chat_summary_history"][-1]) == 0:
+            if get_state("story_info")["ending"] is None:
                 with st.spinner("이야기를 마무리 짓는 중..."):
                     ending = get_state("story_closer").invoke(
                         {
-                            "story_context": get_state("play_info")["event_history"],
-                            "last_event": get_state("play_info")["chat_summary_history"][-1],
-                            "is_old": over_event_limit,
+                            "story_context": get_state("story_info").get_story_summary(),
+                            "last_event": get_state("story_info").get_event_summarized_history(),
+                            "is_old": get_state("story_info").is_over_event_limit(),
                         }
                     )
-                get_state("play_info")["chat_summary_history"][-1].append(
-                    {"role": "ai", "message": ending}
-                )
-                get_state("play_info")["chat_view_history"][-1].append(
-                    {"role": "ai", "message": ending}
-                )
-                save_story(st.session_state["username"], get_state("play_info"), story_name)
+                get_state("story_info")["ending"] = ending
+                get_state("story_info").save()
 
         # 메인 채팅 뷰
         with tab_chat:
-            if len(get_state("play_info")["chat_view_history"][-1]) == 0:
-                send_in_scope("ai", "아무 값이나 입력해 시작하기")
+            if get_state("story_info").is_story_end():
+                send_in_scope("ai", get_state("story_info")["ending"])
+            else:
+                original_history = get_state("story_info").get_event_original_history()
+                init_event = len(original_history) == 0
 
-            for content in get_state("play_info")["chat_view_history"][-1]:
-                if content is not None:
+                for content in original_history:
                     send_in_scope(content["role"], content["message"])
 
-            if prompt := inputs:
-                if is_end:
-                    pass
+                if init_event:
+                    send_in_scope("ai", "아무 값이나 입력해 시작하기")
 
+            if action := inputs:
                 # 사건 시작: init new session
-                elif len(get_state("play_info")["chat_summary_history"][-1]) == 0:
+                if init_event:
                     get_state("storyteller").set_system_prompt(
                         {
-                            "worldview": get_state("play_info")["worldview"],
-                            "event_history": get_state("play_info")["event_history"],
-                            "user_info": get_state("play_info")["user_info"],
+                            "worldview": get_state("story_info")["worldview"],
+                            "event_history": get_state("story_info").get_story_summary(),
+                            "user_info": get_state("story_info").get_user_info(),
                             "last_chat": (
-                                get_state("play_info")["chat_summary_history"][-2]
-                                if len(get_state("play_info")["chat_summary_history"]) >= 2
+                                get_state("story_info").get_event_summarized_history(-2)
+                                if len(get_state("story_info")) >= 2
                                 else []
                             ),
-                            "now_turn": len(get_state("play_info")["event_history"]),
-                            "max_turn": get_state("play_info")["limit_event"],
+                            "now_turn": len(get_state("story_info")),
+                            "max_turn": get_state("story_info")["limit_event"],
                         }
                     )
-                    with st.spinner("작성중..."):
-                        res = try_n(
-                            get_state("storyteller").get_answer,
-                            [
-                                {
-                                    "previous_chat": (
-                                        (
-                                            get_state("play_info")["chat_view_history"][-2][-1][
-                                                "message"
-                                            ]
-                                            if len(get_state("play_info")["chat_view_history"]) > 1
-                                            else ""
-                                        )
-                                        if get_state("play_info")["chat_view_history"][-1] == []
-                                        else get_state("play_info")["chat_view_history"][-1][-1][
-                                            "message"
-                                        ]
-                                    ),
-                                    "action": "",
-                                }
-                            ],
-                        )
-                    msg = "\n\n".join(res["detail"])
-                    if res["example_actions"] is not None and len(res["example_actions"]):
-                        msg += "\n\n<행동 예시>"
-                        for i, action in enumerate(res["example_actions"]):
-                            msg += f"\n{i + 1}. {action}"
-
-                    # send_in_scope("ai", res["plot"])
-                    send_in_scope("ai", msg)
-                    get_state("play_info")["chat_summary_history"][-1] = get_state(
-                        "storyteller"
-                    ).chat_history
-                    get_state("play_info")["chat_view_history"][-1].append(
-                        {"role": "ai", "message": "\n\n".join(res["detail"])}
-                    )
-                    save_story(st.session_state["username"], get_state("play_info"), story_name)
-
-                # 그냥 채팅
+                    action = ""
                 else:
-                    send_in_scope("user", prompt)
+                    send_in_scope("user", action)
 
-                    with st.spinner("작성중..."):
-                        res = try_n(
-                            get_state("storyteller").get_answer,
-                            [
-                                {
-                                    "previous_chat": get_state("play_info")["chat_view_history"][
-                                        -1
-                                    ][-1]["message"],
-                                    "action": prompt,
-                                }
-                            ],
-                        )
-                    msg = "\n\n".join(res["detail"])
-                    if (
-                        not res["is_end"]
-                        and res["example_actions"] is not None
-                        and len(res["example_actions"])
-                    ):
-                        msg += "\n\n<행동 예시>"
-                        for i, action in enumerate(res["example_actions"]):
-                            msg += f"\n{i + 1}. {action}"
+                prev_chat = (
+                    (
+                        get_state("story_info").get_event_original_history(-2)[-1]["message"]
+                        if len(get_state("story_info")) > 1
+                        else ""
+                    )
+                    if get_state("story_info").get_event_original_history() == []
+                    else get_state("story_info").get_event_original_history()[-1]["message"]
+                )
+                with st.spinner("작성중..."):
+                    res = try_n(
+                        get_state("storyteller").get_answer,
+                        [
+                            {
+                                "previous_chat": prev_chat,
+                                "action": action,
+                            }
+                        ],
+                    )
 
-                    # send_in_scope("ai", res["plot"])
-                    send_in_scope("ai", msg)
-                    get_state("play_info")["chat_summary_history"][-1] = get_state(
-                        "storyteller"
-                    ).chat_history
-                    get_state("play_info")["chat_view_history"][-1] += [
-                        {"role": "user", "message": prompt},
-                        {"role": "ai", "message": "\n\n".join(res["detail"])},
-                    ]
-                    if res["is_end"]:
-                        get_state("play_info")["chat_summary_history"][-1].append(None)
-                    save_story(st.session_state["username"], get_state("play_info"), story_name)
+                origin_msg = "\n\n".join(res["detail"])
+                msg = origin_msg
+                if len(res["example_actions"]):
+                    msg += "\n\n<행동 예시>"
+                    for i, ex_act in enumerate(res["example_actions"]):
+                        msg += f"\n{i + 1}. {ex_act}"
 
-            if (
-                len(get_state("play_info")["chat_summary_history"][-1]) > 0
-                and get_state("play_info")["chat_summary_history"][-1][-1] is None
-            ):
+                if not init_event:
+                    get_state("story_info").add_original_chat("user", action)
+                    get_state("story_info").add_summary_chat("user", action)
+                get_state("story_info").add_original_chat("ai", origin_msg)
+                get_state("story_info").add_summary_chat("ai", res["plot"])
+                send_in_scope("ai", msg)
+
+                if res["is_end"]:
+                    get_state("story_info").set_event_end()
+
+                get_state("story_info").save()
+
+            if get_state("story_info").is_event_end():
                 send_in_scope("ai", "사건이 종료되었습니다.")
-
-                get_state("play_info")["chat_summary_history"].append([])
-                get_state("play_info")["chat_view_history"].append([])
 
                 # 요약
                 with st.spinner("사건을 마무리하는 중..."):
@@ -210,72 +163,57 @@ def wrapper(story_name: str) -> callable:
                         {"story_context": get_state("storyteller").chat_history}
                     )
                 send_in_scope("ai", "사건 정리: " + summary)
-                get_state("play_info")["event_history"].append(summary)
+                # get_state("story_info")["event_history"].append(summary)
 
                 # 정산
                 with st.spinner("사건 뒷정리 중..."):
-                    reward = get_state("settlement_manager").invoke(
+                    user_info = get_state("settlement_manager").invoke(
                         {
-                            "user_info": get_state("play_info")["user_info"],
+                            "user_info": get_state("story_info").get_user_info(),
                             "story_context": get_state("storyteller").chat_history,
                         }
                     )
-                # 최대 체력 등 먼저 처리해야하는 값들
-                for key in ["max_hp", "max_mental"]:
-                    if key in reward:
-                        get_state("play_info")["user_info"][key] = reward.pop(key)
-                # 체력 등 상한선이 정해진 값들
-                for key in ["hp", "mental"]:
-                    if key in reward:
-                        get_state("play_info")["user_info"][key] = min(
-                            reward.pop(key), get_state("play_info")["user_info"][f"max_{key}"]
-                        )
-                # 나머지 단순 지정
-                for key, value in reward.items():
-                    if key in get_state("play_info")["user_info"]:
-                        get_state("play_info")["user_info"][key] = value
-                if (
-                    get_state("play_info")["user_info"]["mental"] <= 0
-                    and "미쳐버림" not in get_state("play_info")["user_info"]["characteristics"]
-                ):
-                    get_state("play_info")["user_info"]["characteristics"].append("미쳐버림")
+                # # 최대 체력 등 먼저 처리해야하는 값들
+                # for key in ["max_hp", "max_mental"]:
+                #     if key in reward:
+                #         get_state("story_info").get_user_info()[key] = reward.pop(key)
+                # # 체력 등 상한선이 정해진 값들
+                # for key in ["hp", "mental"]:
+                #     if key in reward:
+                #         get_state("story_info").get_user_info()[key] = min(
+                #             reward.pop(key), get_state("story_info").get_user_info()[f"max_{key}"]
+                #         )
+                # # 나머지 단순 지정
+                # for key, value in reward.items():
+                #     if key in get_state("story_info").get_user_info():
+                #         get_state("story_info").get_user_info()[key] = value
+                if user_info["mental"] <= 0 and "미쳐버림" not in user_info["characteristics"]:
+                    user_info.append("미쳐버림")
 
-                save_story(st.session_state["username"], get_state("play_info"), story_name)
+                get_state("story_info").add_new_event(prev_summary=summary, **user_info)
+                get_state("story_info").save()
 
                 send_in_scope("ai", "아무 키나 입력하여 다음 사건으로 넘어가기")
 
         # 사건 로그
         with tab_event_history:
-            for content in get_state("play_info")["event_history"]:
+            for content in get_state("story_info").get_story_summary():
                 send_in_scope("user", content)
 
         # 유저 정보
         with tab_user_info:
-            st.write(
-                f"체력: {get_state('play_info')['user_info']['hp']} / "
-                f"{get_state('play_info')['user_info']['max_hp']}"
-            )
-            st.write(
-                f"정신력: {get_state('play_info')['user_info']['mental']} / "
-                f"{get_state('play_info')['user_info']['max_mental']}"
-            )
-            st.write(f"성별: {get_state('play_info')['user_info']['sex']}")
-            st.write(f"지위: {get_state('play_info')['user_info']['role']}")
-            st.write(f"현재 위치: {get_state('play_info')['user_info']['location']}")
-            st.markdown(
-                f"보유 특성: `{'`, `'.join(get_state('play_info')['user_info']['characteristics'])}`"
-            )
-            st.markdown(
-                f"보유 기술: `{'`, `'.join(get_state('play_info')['user_info']['skills'])}`"
-            )
-            st.markdown(
-                f"보유 아이템: `{'`, `'.join(get_state('play_info')['user_info']['inventory'])}`"
-            )
-            st.markdown(
-                f"동료: `{'`, `'.join([c['name'] for c in get_state('play_info')['user_info']['companion']])}`"
-            )
+            user_info = get_state("story_info").get_user_info()
+            st.write(f"체력: {user_info['hp']} / " f"{user_info['max_hp']}")
+            st.write(f"정신력: {user_info['mental']} / " f"{user_info['max_mental']}")
+            st.write(f"성별: {user_info['sex']}")
+            st.write(f"지위: {user_info['role']}")
+            st.write(f"현재 위치: {user_info['location']}")
+            st.markdown(f"보유 특성: `{'`, `'.join(user_info['characteristics'])}`")
+            st.markdown(f"보유 기술: `{'`, `'.join(user_info['skills'])}`")
+            st.markdown(f"보유 아이템: `{'`, `'.join(user_info['inventory'])}`")
+            st.markdown(f"동료: `{'`, `'.join([c['name'] for c in user_info['companion']])}`")
 
         with tab_worldview:
-            st.markdown(get_state("play_info")["worldview"])
+            st.markdown(get_state("story_info")["worldview"])
 
     return _page

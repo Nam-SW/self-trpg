@@ -12,6 +12,7 @@ class CompanionStruct(BaseModel):
 
 class SettlementResponseStruct(BaseModel):
     role: str = Field(description="유저의 역할 혹은 지위입니다.")
+    sex: str = Field(description="유저의 성별입니다.")
     location: str = Field(
         description="유저의 현재 위치입니다. '<국가 혹은 지역>, <세부 위치>' 의 형태입니다."
     )
