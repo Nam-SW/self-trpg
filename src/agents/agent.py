@@ -193,7 +193,7 @@ class MultiTernChain:
             raise RuntimeError("chain must be init before answer, through `set_system_prompt()`")
 
         input_text = self.user_template.format(**inputs)
-        print(input_text + self.get_turn_limit_prompt())
+        # print(input_text + self.get_turn_limit_prompt())
         response = self.chain.invoke(
             {
                 "message": input_text + self.get_turn_limit_prompt(),
