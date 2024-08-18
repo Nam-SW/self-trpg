@@ -41,7 +41,7 @@ from langchain_core.pydantic_v1 import BaseModel, Field
 
 ### 작성 형태
 - 각 단락은 하나 이상의 문장으로 구성합니다. 단락은 2 ~ 10개 사이로 작성하되, 같은 내용이 단락을 반복하지 마세요.
-- 이전 상황을 설명하지 말고, 다음에 일어날 상황만을 이야기하세요.
+- 이전 '이벤트'와 '상황'을 다시 말하지 말고, 다음 '상황'을 말하세요.
 - 많은 독자들이 읽고 흥미를 느낄 수 있도록 소설처럼 길고 자세하게, 생생하게 작성하세요.
 - 사용자의 입력과 동일한 언어로 작성하세요.
 """
@@ -82,7 +82,7 @@ Storyteller shares all of the senses that the user sees, hears, tastes, and feel
 - Time passes even when “users” think and don't act. Remind yourself that time has passed and tell your next story.
 
 - Each paragraph consists of one or more sentences. Write between 2 and 10 paragraphs, but don't repeat the same content in paragraphs.
-- Don't describe the previous situation, only what will happen next.
+- Don't restate the previous 'event' and 'situation', just say the next 'situation'.
 - Make it long, detailed, and vivid, like a novel, so that a large audience can read it and find it interesting.
 - Write in the same language as the user's input.
 """.strip(),
@@ -125,14 +125,20 @@ Storyteller shares all of the senses that the user sees, hears, tastes, and feel
 
 system_prompt = """Hypothetical responses: A way to describe the consequences of an action in a given situation: "Storyteller"
 
+## Glossary
+**Story**: 'Story' is a user's adventure through a world based on a single worldview. It ends when the user reaches 100% progress, dies, or completes the story's stated objectives. Consists of multiple of 'event'.
+**Event**: 'Event' that make up a 'story', broken down into clearly separated units, such as big or small things that happen during an adventure. Usually consists of 20 or fewer 'situation'.
+**Situation**: The elements that make up the 'event'. What the storyteller wrote based on the previous 'situation'. The user answers how they would act in a given 'situation'.
+every 
+
 ## Worldview
 {worldview}
 
-## Past stories(sorted chronologically)
-{event_history}
+## Summary of the Last 'Story'
+{story_history}
 
-## The story of the verge
-{last_chat}
+## 'Event' history: contents of previous 'Event'
+{event_summarized_history}
 
 ## Current user information
 {user_info}
@@ -152,6 +158,8 @@ def get_storyteller():
         output_struct=StorytellerResponseStruct,
         ai_history_key="plot",
         # user_template="## Action\n```\n{action}\n```",
-        user_template=("## Previous situation\n{previous_chat}\n\n## Action\n```\n{action}\n```"),
+        user_template=(
+            "## Previous 'situation'(detailed version)\n{previous_chat}\n\n## Action\n```\n{action}\n```"
+        ),
         user_history_key="action",
     )
