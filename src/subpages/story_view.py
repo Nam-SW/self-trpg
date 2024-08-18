@@ -46,7 +46,10 @@ def wrapper(story_name: str) -> callable:
             "max_turn": get_state("story_info")["limit_event"],
         }
     )
-    get_state("storyteller").chat_history = get_state("story_info").get_event_summarized_history()
+    get_state("storyteller").set_chat_history(
+        summary=get_state("story_info").get_event_summarized_history(),
+        detail=get_state("story_info").get_event_original_history(),
+    )
 
     def _page():
 
@@ -126,11 +129,12 @@ def wrapper(story_name: str) -> callable:
                     else get_state("story_info").get_event_original_history()[-1]["message"]
                 )
                 with st.spinner("작성중..."):
+                    # res = get_state("storyteller").get_answer({"action": action})
                     res = try_n(
                         get_state("storyteller").get_answer,
                         [
                             {
-                                "previous_chat": prev_chat,
+                                # "previous_chat": prev_chat,
                                 "action": action,
                             }
                         ],
@@ -162,7 +166,8 @@ def wrapper(story_name: str) -> callable:
                 # 요약
                 with st.spinner("사건을 마무리하는 중..."):
                     summary = get_state("summarizer").invoke(
-                        {"story_context": get_state("storyteller").chat_history}
+                        # {"story_context": get_state("storyteller").chat_history_detail()}
+                        {"story_context": get_state("story_info").get_event_original_history()}
                     )
                 send_in_scope("ai", "사건 정리: " + summary)
 
@@ -171,7 +176,8 @@ def wrapper(story_name: str) -> callable:
                     user_info = get_state("settlement_manager").invoke(
                         {
                             "user_info": get_state("story_info").get_user_info(),
-                            "story_context": get_state("storyteller").chat_history,
+                            # "story_context": get_state("storyteller").chat_history_detail(),
+                            "story_context": get_state("story_info").get_event_original_history(),
                         }
                     )
 
