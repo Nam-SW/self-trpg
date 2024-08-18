@@ -25,6 +25,11 @@ class StoryInfoManager:
         **kwargs
     ) -> None:
         self.username = username
+        if story_name == "":
+            if main_theme is not None:
+                story_name = main_theme
+            else:
+                story_name = "이야기"
         self.story_name = story_name.replace(" ", "_")
         if re.match(r"\d{12}_.+", self.story_name) is None:
             self.story_name = dt.datetime.now().strftime("%y%m%d%H%M%S_") + self.story_name
@@ -43,6 +48,7 @@ class StoryInfoManager:
                 worldview=worldview,
                 limit_event=kwargs.get("limit_event", 50),
                 events=[],
+                ending=None,
             )
             self.add_new_event(prev_summary, role, sex, location, **kwargs)
 
@@ -88,6 +94,9 @@ class StoryInfoManager:
     def add_summary_chat(self, role: str, context: str):
         self.info["events"][-1]["summarized_history"].append({"role": role, "message": context})
 
+    def add_ending(self, ending: str):
+        self.info["ending"] = ending
+
     def add_new_event(self, prev_summary: str, role: str, sex: str, location: str, **kwargs):
         self.info["events"].append(
             EventInfo(
@@ -117,6 +126,7 @@ class StoryInfoManager:
         self.info["events"][0]["original_history"] = []
         self.info["events"][0]["summarized_history"] = []
         self.info["events"][0]["is_end"] = False
+        self.info["ending"] = None
 
     def rollback_to_prev_event(self):
         if len(self) > 1 and len(self.get_event_original_history(-1)) <= 1:
@@ -127,6 +137,7 @@ class StoryInfoManager:
         self.info["events"][-1]["original_history"] = []
         self.info["events"][-1]["summarized_history"] = []
         self.info["events"][-1]["is_end"] = False
+        self.info["ending"] = None
 
     # utils
     def save(self) -> None:

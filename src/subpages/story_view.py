@@ -35,13 +35,13 @@ def wrapper(story_name: str) -> callable:
     get_state("storyteller").set_system_prompt(
         {
             "worldview": get_state("story_info")["worldview"],
-            "event_history": get_state("story_info").get_story_summary(),
-            "user_info": get_state("story_info").get_user_info(),
-            "last_chat": (
+            "story_history": get_state("story_info").get_story_summary(),
+            "event_summarized_history": (
                 get_state("story_info").get_event_summarized_history(-2)
                 if len(get_state("story_info")) >= 2
                 else []
             ),
+            "user_info": get_state("story_info").get_user_info(),
             "now_turn": len(get_state("story_info")),
             "max_turn": get_state("story_info")["limit_event"],
         }
@@ -77,36 +77,37 @@ def wrapper(story_name: str) -> callable:
                             "is_old": get_state("story_info").is_over_event_limit(),
                         }
                     )
-                get_state("story_info")["ending"] = ending
+                get_state("story_info").add_ending(ending)
                 get_state("story_info").save()
 
         # 메인 채팅 뷰
         with tab_chat:
+            original_history = get_state("story_info").get_event_original_history()
+            init_event = len(original_history) == 0
+
             if get_state("story_info").is_story_end():
                 send_in_scope("ai", get_state("story_info")["ending"])
             else:
-                original_history = get_state("story_info").get_event_original_history()
-                init_event = len(original_history) == 0
-
                 for content in original_history:
                     send_in_scope(content["role"], content["message"])
 
                 if init_event:
                     send_in_scope("ai", "아무 값이나 입력해 시작하기")
 
-            if action := inputs:
+            if (action := inputs) and not get_state("story_info").is_story_end():
                 # 사건 시작: init new session
                 if init_event:
+                    get_state("storyteller").clear_history()
                     get_state("storyteller").set_system_prompt(
                         {
                             "worldview": get_state("story_info")["worldview"],
-                            "event_history": get_state("story_info").get_story_summary(),
-                            "user_info": get_state("story_info").get_user_info(),
-                            "last_chat": (
+                            "story_history": get_state("story_info").get_story_summary(),
+                            "event_summarized_history": (
                                 get_state("story_info").get_event_summarized_history(-2)
                                 if len(get_state("story_info")) >= 2
                                 else []
                             ),
+                            "user_info": get_state("story_info").get_user_info(),
                             "now_turn": len(get_state("story_info")),
                             "max_turn": get_state("story_info")["limit_event"],
                         }
@@ -137,7 +138,8 @@ def wrapper(story_name: str) -> callable:
 
                 origin_msg = "\n\n".join(res["detail"])
                 msg = origin_msg
-                if len(res["example_actions"]):
+
+                if len(res["example_actions"]) and (init_event or not res["is_end"]):
                     msg += "\n\n<행동 예시>"
                     for i, ex_act in enumerate(res["example_actions"]):
                         msg += f"\n{i + 1}. {ex_act}"
@@ -149,7 +151,7 @@ def wrapper(story_name: str) -> callable:
                 get_state("story_info").add_summary_chat("ai", res["plot"])
                 send_in_scope("ai", msg)
 
-                if res["is_end"]:
+                if not init_event and res["is_end"]:  # 이야기 시작하자마자 끝나지 않도록
                     get_state("story_info").set_event_end()
 
                 get_state("story_info").save()
@@ -163,7 +165,6 @@ def wrapper(story_name: str) -> callable:
                         {"story_context": get_state("storyteller").chat_history}
                     )
                 send_in_scope("ai", "사건 정리: " + summary)
-                # get_state("story_info")["event_history"].append(summary)
 
                 # 정산
                 with st.spinner("사건 뒷정리 중..."):
@@ -173,22 +174,9 @@ def wrapper(story_name: str) -> callable:
                             "story_context": get_state("storyteller").chat_history,
                         }
                     )
-                # # 최대 체력 등 먼저 처리해야하는 값들
-                # for key in ["max_hp", "max_mental"]:
-                #     if key in reward:
-                #         get_state("story_info").get_user_info()[key] = reward.pop(key)
-                # # 체력 등 상한선이 정해진 값들
-                # for key in ["hp", "mental"]:
-                #     if key in reward:
-                #         get_state("story_info").get_user_info()[key] = min(
-                #             reward.pop(key), get_state("story_info").get_user_info()[f"max_{key}"]
-                #         )
-                # # 나머지 단순 지정
-                # for key, value in reward.items():
-                #     if key in get_state("story_info").get_user_info():
-                #         get_state("story_info").get_user_info()[key] = value
+
                 if user_info["mental"] <= 0 and "미쳐버림" not in user_info["characteristics"]:
-                    user_info.append("미쳐버림")
+                    user_info["characteristics"].append("미쳐버림")
 
                 get_state("story_info").add_new_event(prev_summary=summary, **user_info)
                 get_state("story_info").save()
