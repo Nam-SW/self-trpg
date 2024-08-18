@@ -164,3 +164,4 @@ config/*.yaml
 */*/*.json
 *.zip
 *copy.*
+*.ipynb
