@@ -14,8 +14,6 @@ from langchain_core.pydantic_v1 import BaseModel
 
 # from langchain_community.callbacks.manager import get_openai_callback
 
-from utils.utils import convert_json
-
 
 def get_agent(**kwargs):
     match model_type:
@@ -317,12 +315,6 @@ class SummaryMultiTernChain:
         if self.chain is None:
             raise RuntimeError("chain must be init before answer, through `set_system_prompt()`")
 
-        print("[")
-        for i in self._get_chat_history():
-            print(i)
-        print(inputs[self.user_history_key])
-        print("]")
-
         input_text = self.user_template.format(**inputs)
         # print(input_text + self.get_turn_limit_prompt())
         response = self.chain.invoke(
@@ -340,9 +332,4 @@ class SummaryMultiTernChain:
         self.__chat_history_detail.append(
             AIMessage(content="\n\n".join(response[self.ai_history_key_detail]))
         )
-
-        print(response[self.ai_history_key_summary])
-        print("\n\n".join(response[self.ai_history_key_detail]))
-        print()
-
         return response
