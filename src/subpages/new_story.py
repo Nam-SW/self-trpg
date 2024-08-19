@@ -2,11 +2,9 @@
 
 import streamlit as st
 
-from agents.screenwriter import get_screenwriter
+from agents.screenwriter import get_screenwriter, world_to_document
 from agents.role_manager import get_role_manager
 from story_info import StoryInfoManager
-
-# from utils.user_info import get_new_user, save_story
 
 
 screenwriter = get_screenwriter()
@@ -85,7 +83,9 @@ with tab1:
                     }
                 )
             st.session_state["info"]["worldview"] = worldview
-    st.write(st.session_state["info"]["worldview"])
+    if isinstance(st.session_state["info"]["worldview"], dict):
+        st.markdown(world_to_document(st.session_state["info"]["worldview"], True))
+    # st.write(st.session_state["info"]["worldview"])
 
 with tab2:
     if st.session_state["info"]["worldview"] == "":
