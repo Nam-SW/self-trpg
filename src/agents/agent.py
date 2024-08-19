@@ -150,18 +150,6 @@ class MultiTernChain:
         )
         self.chain = prompt_template | self.model | self.parser
 
-    def init_new_session(self) -> str:
-        self.clear_history()
-
-        init_chain = self.model | self.parser
-        init_result = init_chain.invoke(self.chain.first.messages[0].prompt.template)
-        # print(init_result)
-
-        hist = init_result[self.ai_history_key] if self.structed else init_result
-
-        self.__chat_history.append(AIMessage(content=hist))
-        return init_result
-
     def get_turn_limit_prompt(self) -> str:
         limit = self.limit_turn - len(self.chat_history) // 2
         return f"\n\nTry to end the conversation within {max(limit, 1)} turns."
