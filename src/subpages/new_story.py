@@ -84,7 +84,8 @@ with tab1:
                 )
             st.session_state["info"]["worldview"] = worldview
     if isinstance(st.session_state["info"]["worldview"], dict):
-        st.markdown(world_to_document(st.session_state["info"]["worldview"], True))
+        # st.write(st.session_state["info"]["worldview"])
+        st.markdown(world_to_document(st.session_state["info"]["worldview"]))
     # st.write(st.session_state["info"]["worldview"])
 
 with tab2:

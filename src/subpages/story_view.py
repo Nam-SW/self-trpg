@@ -211,6 +211,7 @@ def wrapper(story_name: str) -> callable:
             st.markdown(f"동료: `{'`, `'.join([c['name'] for c in user_info['companion']])}`")
 
         with tab_worldview:
+            # st.markdown(get_state("story_info")["worldview"])
             st.markdown(world_to_document(get_state("story_info")["worldview"]))
 
     return _page
