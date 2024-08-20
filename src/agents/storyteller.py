@@ -9,7 +9,8 @@ class StorytellerResponseStruct(BaseModel):
             "An array of strings, each representing a paragraph of the narrative. "
             "These should be vivid, detailed, and uncensored descriptions of the current situation, "
             "including character thoughts, dialogue, and environmental details. "
-            "Write in the same language as the worldview you're presenting."
+            "Write in the same language as the worldview you're presenting. "
+            "Ensure strict adherence to the world's rules and setting."
         ),
     )
     plot: str = Field(
@@ -82,6 +83,8 @@ Create the next situation in the story, adhering to the following guidelines:
    a) Incorporate unique elements of the world into the narrative.
    b) Use appropriate terminology and concepts from the established setting.
    c) Ensure that all events and actions are plausible within the world's rules.
+   d) Strictly adhere to the physical and social rules of the dungeon.
+   e) Incorporate the main factions and their goals into the narrative when relevant.
 
 5. Tone and Style:
    a) Adapt your writing style to match the world's atmosphere (e.g., gritty, whimsical, erotic, violent, etc.).
@@ -94,14 +97,6 @@ Create the next situation in the story, adhering to the following guidelines:
    c) Allow for both success and failure based on user choices and world logic.
    d) Don't restrict options based on moral or ethical considerations.
 
-[Output Format]
-Generate the following in JSON format:
-{{
-  "detail": ["<Paragraph 1>", "<Paragraph 2>", "..."],
-  "plot": "<Concise plot summary>",
-  "example_actions": ["<Action 1>", "<Action 2>", "<Action 3>"],
-  "is_end": <boolean>
-}}
 
 [Quality Checklist]
 Before submitting, ensure:
