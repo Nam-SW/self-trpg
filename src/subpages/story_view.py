@@ -1,6 +1,7 @@
 import streamlit as st
 
 
+from agents.screenwriter import world_to_document
 from agents.storyteller import get_storyteller
 from agents.story_closer import get_story_closer
 from agents.summarizer import get_summarizer
@@ -34,7 +35,7 @@ def wrapper(story_name: str) -> callable:
 
     get_state("storyteller").set_system_prompt(
         {
-            "worldview": get_state("story_info")["worldview"],
+            "worldview": world_to_document(get_state("story_info")["worldview"], True),
             "story_history": get_state("story_info").get_story_summary(),
             "event_summarized_history": (
                 get_state("story_info").get_event_summarized_history(-2)
@@ -103,7 +104,9 @@ def wrapper(story_name: str) -> callable:
                     get_state("storyteller").clear_history()
                     get_state("storyteller").set_system_prompt(
                         {
-                            "worldview": get_state("story_info")["worldview"],
+                            "worldview": world_to_document(
+                                get_state("story_info")["worldview"], True
+                            ),
                             "story_history": get_state("story_info").get_story_summary(),
                             "event_summarized_history": (
                                 get_state("story_info").get_event_summarized_history(-2)
@@ -119,15 +122,15 @@ def wrapper(story_name: str) -> callable:
                 else:
                     send_in_scope("user", action)
 
-                prev_chat = (
-                    (
-                        get_state("story_info").get_event_original_history(-2)[-1]["message"]
-                        if len(get_state("story_info")) > 1
-                        else ""
-                    )
-                    if get_state("story_info").get_event_original_history() == []
-                    else get_state("story_info").get_event_original_history()[-1]["message"]
-                )
+                # prev_chat = (
+                #     (
+                #         get_state("story_info").get_event_original_history(-2)[-1]["message"]
+                #         if len(get_state("story_info")) > 1
+                #         else ""
+                #     )
+                #     if get_state("story_info").get_event_original_history() == []
+                #     else get_state("story_info").get_event_original_history()[-1]["message"]
+                # )
                 with st.spinner("작성중..."):
                     # res = get_state("storyteller").get_answer({"action": action})
                     res = try_n(
@@ -208,6 +211,7 @@ def wrapper(story_name: str) -> callable:
             st.markdown(f"동료: `{'`, `'.join([c['name'] for c in user_info['companion']])}`")
 
         with tab_worldview:
-            st.markdown(get_state("story_info")["worldview"])
+            # st.markdown(get_state("story_info")["worldview"])
+            st.markdown(world_to_document(get_state("story_info")["worldview"]))
 
     return _page

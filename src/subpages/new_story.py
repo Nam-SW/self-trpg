@@ -2,11 +2,9 @@
 
 import streamlit as st
 
-from agents.screenwriter import get_screenwriter
+from agents.screenwriter import get_screenwriter, world_to_document
 from agents.role_manager import get_role_manager
 from story_info import StoryInfoManager
-
-# from utils.user_info import get_new_user, save_story
 
 
 screenwriter = get_screenwriter()
@@ -51,8 +49,6 @@ if st.button("이야기 시작하기"):
             st.session_state["username"], story_name, **st.session_state["info"]
         )
         story.save()
-        # user_info = get_new_user(**st.session_state["info"])
-        # save_story(st.session_state["username"], user_info, story_name)
         st.success(
             "생성이 완료되었습니다. 페이지를 새로고침하면 좌측에 생성한 모험의 책장이 생성됩니다.",
             icon="✅",
@@ -85,7 +81,9 @@ with tab1:
                     }
                 )
             st.session_state["info"]["worldview"] = worldview
-    st.write(st.session_state["info"]["worldview"])
+    if isinstance(st.session_state["info"]["worldview"], dict):
+        # st.write(st.session_state["info"]["worldview"])
+        st.markdown(world_to_document(st.session_state["info"]["worldview"]))
 
 with tab2:
     if st.session_state["info"]["worldview"] == "":
@@ -99,7 +97,8 @@ with tab2:
             with st.spinner("주인공을 정하는 중입니다..."):
                 start_info = role_manager.invoke(
                     {
-                        "worldview": st.session_state["info"]["worldview"],
+                        # "worldview": st.session_state["info"]["worldview"],
+                        "worldview": world_to_document(st.session_state["info"]["worldview"]),
                         "charactor_keywords": charactor_keywords,
                     }
                 )
