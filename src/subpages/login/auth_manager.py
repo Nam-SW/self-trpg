@@ -15,7 +15,7 @@ class AuthenticationManager:
     def __init__(
         self,
         user_dict: dict,
-        public_key: str,
+        public_key: Optional[str] = None,
         auto_hash: bool = True,
     ):
         self.user_dict = user_dict
@@ -84,7 +84,7 @@ class AuthenticationManager:
         self,
         username: str,
         password: str,
-        public_key: str,
+        public_key: Optional[str] = None,
         max_concurrent_users: Optional[int] = None,
         max_login_attempts: Optional[int] = None,
     ) -> bool:
@@ -97,7 +97,7 @@ class AuthenticationManager:
         if username not in self.user_dict:
             return False
 
-        if not self._check_public_key(public_key):
+        if self.public_key is not None and not self._check_public_key(public_key):
             raise LoginError("올바른 퍼블릭 키를 입력하세요.")
 
         if (
@@ -167,7 +167,7 @@ class AuthenticationManager:
             raise RegisterError("동일한 비밀번호를 입력하세요.")
         # if not self.validator.validate_password(password):
         #     raise RegisterError("올바르지 않은 비밀번호입니다.")
-        if not self._check_public_key(public_key):
+        if self.public_key is not None and not self._check_public_key(public_key):
             raise LoginError("올바른 퍼블릭 키를 입력하세요.")
         if username in self.user_dict:
             raise RegisterError("이미 가입한 아이디입니다.")

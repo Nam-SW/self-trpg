@@ -20,9 +20,11 @@ class Authenticate:
         self,
         user_dict: dict,
         cookie: dict,
-        public_key: str,
+        public_key: Optional[str] = None,
         auto_hash: bool = True,
+        # use_public_key: bool = True,
     ):
+        self.use_public_key = public_key is not None
         self.authentication_controller = AuthenticationManager(user_dict, public_key, auto_hash)
         self.cookie_controller = CookieController(**cookie)
         if not st.session_state["authentication_status"]:
@@ -40,7 +42,6 @@ class Authenticate:
         max_concurrent_users: Optional[int] = None,
         max_login_attempts: Optional[int] = None,
         clear_on_submit: bool = False,
-        sleep_time: Optional[float] = None,
     ) -> tuple:
         key = "Login"
 
@@ -50,7 +51,7 @@ class Authenticate:
             token = self.cookie_controller.get_cookie()
             if token:
                 self.authentication_controller.login(token=token)
-            # time.sleep(0.5 if sleep_time is None else sleep_time)
+
             if not st.session_state["authentication_status"]:
                 if location == "main":
                     login_form = st.form(key=key, clear_on_submit=clear_on_submit)
@@ -64,7 +65,12 @@ class Authenticate:
                 login_form.subheader("로그인")
                 username = login_form.text_input("ID")
                 password = login_form.text_input("PW", type="password")
-                public_key = login_form.text_input("public key", type="password")
+
+                public_key = (
+                    login_form.text_input("public key", type="password")
+                    if self.use_public_key
+                    else None
+                )
 
                 if login_form.form_submit_button("로그인"):
                     if self.authentication_controller.login(
@@ -127,7 +133,11 @@ class Authenticate:
         username = register_user_form.text_input("ID")
         password = register_user_form.text_input("PW", type="password")
         password_check = register_user_form.text_input("PW check", type="password")
-        public_key = register_user_form.text_input("public key", type="password")
+        public_key = (
+            register_user_form.text_input("public key", type="password")
+            if self.use_public_key
+            else None
+        )
 
         if register_user_form.form_submit_button("회원가입"):
             return self.authentication_controller.register_user(
