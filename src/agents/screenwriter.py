@@ -209,7 +209,7 @@ user's input:
 {theme}
 
 **Sub keywords and requirements**
-{keywords}
+{requirements}
 ```
 
 Output a captivating and unique world in JSON format that deeply engages readers, incorporating all the given themes and requirements.
@@ -266,18 +266,18 @@ def world_to_document(world, show_secret=False):
             markdown += f" (중요성: {location['significance']})"
         markdown += "\n"
 
-    markdown += f"\n**세계 지도**: {world['geography']['world_map']}\n"
+    markdown += f"\n**지리 설명**: {world['geography']['world_map']}\n"
 
-    # 파벌
-    markdown += "\n## 파벌\n"
-    markdown += "**파벌 목록**:\n"
+    # 세력
+    markdown += "\n## 세력\n"
+    markdown += "**세력 목록**:\n"
     for faction in world["factions"]["faction"]:
         markdown += f"- **{faction['name']}**\n"
         markdown += f"  - 목표: {faction['goal']}\n"
         markdown += f"  - 활동 지역: {faction['regions']}\n"
         markdown += f"  - 특성: {faction['trait']}\n"
 
-    markdown += "\n**파벌 간 관계**:\n"
+    markdown += "\n**세력 간 관계**:\n"
     for relation in world["factions"]["relations"]:
         markdown += f"- {relation}\n"
 
@@ -306,7 +306,7 @@ def world_to_document(world, show_secret=False):
         for secret in world["hidden_secrets"]["secrets"]:
             markdown += f"- {secret}\n"
 
-        markdown += "\n**비밀 파벌**:\n"
+        markdown += "\n**비밀 세력**:\n"
         for faction in world["hidden_secrets"]["secret_faction"]["faction"]:
             markdown += f"- **{faction['name']}**\n"
             markdown += f"  - 목표: {faction['goal']}\n"

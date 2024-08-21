@@ -33,7 +33,7 @@ if not hasattr(st.session_state, "info"):
 st.title("새로운 이야기")
 
 st.write("새로운 이야기를 시작하기 앞서, 모험을 떠날 이야기를 정해봅시다.")
-st.write("이야기를 정하기 위해 탐험할 세계의 주제와 세부 키워드를 입력해주세요.")
+st.write("이야기를 정하기 위해 탐험할 세계의 주제와 세부 내용을 입력해주세요.")
 
 story_name = st.text_input("이야기의 제목")
 limit_event = st.slider("이야기의 길이", 10, 200, 50)
@@ -60,24 +60,24 @@ tab1, tab2 = st.tabs(["세계관 만들기", "캐릭터 설정하기"])
 with tab1:
     worldview_form = st.form(key="worldview_form")
     main_theme = worldview_form.text_input("세계의 주제", placeholder="ex) 좀비(강시) 아포칼립스")
-    keywords = worldview_form.text_area(
-        "세부 키워드", placeholder="ex) 강시 역병, 고려 중기, 화약, 왕궁, 왕족"
+    requirements = worldview_form.text_area(
+        "세부 내용", placeholder="ex) 강시 역병, 고려 중기, 화약, 왕궁, 왕족"
     )
 
     if worldview_form.form_submit_button("이야기 작성하기"):
         st.session_state["info"]["main_theme"] = main_theme
-        st.session_state["info"]["keywords"] = keywords
+        st.session_state["info"]["requirements"] = requirements
         if (
             st.session_state["info"]["main_theme"] == ""
-            or st.session_state["info"]["keywords"] == ""
+            or st.session_state["info"]["requirements"] == ""
         ):
-            st.warning("주제와 키워드를 입력하세요.")
+            st.warning("주제와 세부 내용을 입력하세요.")
         else:
             with st.spinner("이야기를 쓰는 중입니다..."):
                 worldview = screenwriter.invoke(
                     {
                         "theme": st.session_state["info"]["main_theme"],
-                        "keywords": st.session_state["info"]["keywords"],
+                        "requirements": st.session_state["info"]["requirements"],
                     }
                 )
             st.session_state["info"]["worldview"] = worldview
