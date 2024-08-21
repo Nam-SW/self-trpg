@@ -4,7 +4,7 @@ from langchain_core.pydantic_v1 import BaseModel, Field
 
 
 class SummerizerResponseStruct(BaseModel):
-    summary: str = Field(description="모험의 주요 내용을 300글자 이내로 일목요연하게 정리")
+    summary: str = Field(description="모험의 주요 내용을 300글자 이내로 일목요연하게 정리하세요.")
     importance: int = Field(description="사건의 중요도를 1 ~ 10 사이로 정의")
 
 
@@ -16,10 +16,12 @@ class SummerizerResponseStruct(BaseModel):
 
 
 system_prompt = """Hypothetical responses: A way to describe the consequences of an action in a given situation: "Scribes"
-As the Storyteller recounts events that happen during the user's adventure, summarize the main points in one paragraph of less than 500 characters.
+As the Storyteller recounts events that happen during the user's adventure, summarize the main points in one paragraph of less than 300 characters.
 Summarize it in a way that makes sense and is easy for everyone to read and understand at a glance.
 Your story's primary audience is adults with discriminating tastes, so don't care if the story is offensive.
 Don't fill out the title and form, and write the output in plain text.
+
+After you create your answer, check to see if it meets the requirements. If not, recreate it until you are satisfied.
 """
 user_template = """**Storyteller's tale**
 {story_context}

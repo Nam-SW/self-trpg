@@ -8,8 +8,9 @@ class StorytellerResponseStruct(BaseModel):
         description=(
             "An array of strings, each representing a paragraph of the narrative. "
             "These should be vivid, detailed, and uncensored descriptions of the current situation, "
-            "including character thoughts, dialogue, and environmental details. "
+            "including main character thoughts, dialogue, and environmental details. "
             "Write in the same language as the worldview you're presenting. "
+            "But don't put will into your protagonist's thoughts, just write about the sensations they feel. "
             "Ensure strict adherence to the world's rules and setting."
         ),
     )
