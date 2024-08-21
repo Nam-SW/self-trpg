@@ -168,10 +168,17 @@ def wrapper(story_name: str) -> callable:
 
                 # 요약
                 with st.spinner("사건을 마무리하는 중..."):
-                    summary = get_state("summarizer").invoke(
+                    summarize_result = get_state("summarizer").invoke(
                         # {"story_context": get_state("storyteller").chat_history_detail()}
-                        {"story_context": get_state("story_info").get_event_original_history()}
+                        {
+                            "worldview": world_to_document(
+                                get_state("story_info")["worldview"], True
+                            ),
+                            "story_context": get_state("story_info").get_event_original_history(),
+                        }
                     )
+                    summary = summarize_result["summary"]
+                    story_end = summarize_result["story_end"]
                 send_in_scope("ai", "사건 정리: " + summary)
 
                 # 정산
@@ -188,8 +195,12 @@ def wrapper(story_name: str) -> callable:
                     user_info["characteristics"].append("미쳐버림")
 
                 get_state("story_info").add_new_event(prev_summary=summary, **user_info)
-                get_state("story_info").save()
 
+                # send_in_scope("ai", f"is end: {story_end}")
+                if story_end:
+                    get_state("story_info").set_story_end()
+
+                get_state("story_info").save()
                 send_in_scope("ai", "아무 키나 입력하여 다음 사건으로 넘어가기")
 
         # 사건 로그

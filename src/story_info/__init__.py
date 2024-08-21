@@ -48,6 +48,7 @@ class StoryInfoManager:
                 worldview=worldview,
                 limit_event=kwargs.get("limit_event", 50),
                 events=[],
+                is_end=False,
                 ending=None,
             )
             self.add_new_event(prev_summary, role, sex, location, **kwargs)
@@ -82,11 +83,14 @@ class StoryInfoManager:
         return len(self) >= self.info["limit_event"]
 
     def is_story_end(self) -> bool:
-        return self.is_over_event_limit() or self.get_user_info()["hp"] <= 0
+        return self.info["is_end"] or self.is_over_event_limit() or self.get_user_info()["hp"] <= 0
 
     # set data
     def set_event_end(self):
         self.info["events"][-1]["is_end"] = True
+
+    def set_story_end(self):
+        self.info["is_end"] = True
 
     def add_original_chat(self, role: str, context: str):
         self.info["events"][-1]["original_history"].append({"role": role, "message": context})
@@ -126,6 +130,7 @@ class StoryInfoManager:
         self.info["events"][0]["original_history"] = []
         self.info["events"][0]["summarized_history"] = []
         self.info["events"][0]["is_end"] = False
+        self.info["is_end"] = False
         self.info["ending"] = None
 
     def rollback_to_prev_event(self):
@@ -137,6 +142,7 @@ class StoryInfoManager:
         self.info["events"][-1]["original_history"] = []
         self.info["events"][-1]["summarized_history"] = []
         self.info["events"][-1]["is_end"] = False
+        self.info["is_end"] = False
         self.info["ending"] = None
 
     # utils

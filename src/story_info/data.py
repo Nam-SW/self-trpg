@@ -39,4 +39,5 @@ class StoryInfo(TypedDict):
     worldview: str  # 세계관
     limit_event: int = 50  # 최대 사건 개수
     events: list[EventInfo]  # 사건 정보
+    is_end: bool = False  # 엔딩인가?
     ending: Optional[str] = None  # 엔딩
