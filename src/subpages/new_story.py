@@ -32,14 +32,15 @@ if not hasattr(st.session_state, "info"):
 
 st.title("새로운 이야기")
 
-st.write("새로운 이야기를 시작하기 앞서, 모험을 떠날 이야기를 정해봅시다.")
-st.write("이야기를 정하기 위해 탐험할 세계의 주제와 세부 내용을 입력해주세요.")
+form = st.form(key="story_form")
+form.write("새로운 이야기를 시작하기 앞서, 모험을 떠날 이야기를 정해봅시다.")
+form.write("이야기를 정하기 위해 탐험할 세계의 주제와 세부 내용을 입력해주세요.")
 
-story_name = st.text_input("이야기의 제목")
-limit_event = st.slider("이야기의 길이", 10, 200, 50)
+story_name = form.text_input("이야기의 제목")
+limit_event = form.slider("이야기의 길이", 10, 200, 50)
 
 
-if st.button("이야기 시작하기"):
+if form.form_submit_button("이야기 시작하기"):
     st.session_state["info"]["limit_event"] = limit_event
     if "" in st.session_state["info"].values():
         st.warning("이야기와 캐릭터를 생성한 후 결정할 수 있습니다.", icon="⚠️")
