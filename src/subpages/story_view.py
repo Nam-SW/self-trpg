@@ -62,8 +62,8 @@ def wrapper(story_name: str) -> callable:
             len(get_state("story_info")),
             disabled=True,
         )
-        tab_chat, tab_event_history, tab_user_info, tab_worldview = st.tabs(
-            ["모험 진행하기", "사건 로그", "유저 정보", "세계관"]
+        tab_chat, tab_event_history, tab_chat_histroy, tab_user_info, tab_worldview = st.tabs(
+            ["모험 진행하기", "이야기 요약", "사건별 기억", "유저 정보", "세계관"]
         )
         inputs = st.chat_input(
             "텍스트를 입력하세요.",
@@ -122,17 +122,7 @@ def wrapper(story_name: str) -> callable:
                 else:
                     send_in_scope("user", action)
 
-                # prev_chat = (
-                #     (
-                #         get_state("story_info").get_event_original_history(-2)[-1]["message"]
-                #         if len(get_state("story_info")) > 1
-                #         else ""
-                #     )
-                #     if get_state("story_info").get_event_original_history() == []
-                #     else get_state("story_info").get_event_original_history()[-1]["message"]
-                # )
                 with st.spinner("작성중..."):
-                    # res = get_state("storyteller").get_answer({"action": action})
                     res = try_n(
                         get_state("storyteller").get_answer,
                         [
@@ -169,7 +159,6 @@ def wrapper(story_name: str) -> callable:
                 # 요약
                 with st.spinner("사건을 마무리하는 중..."):
                     summarize_result = get_state("summarizer").invoke(
-                        # {"story_context": get_state("storyteller").chat_history_detail()}
                         {
                             "worldview": world_to_document(
                                 get_state("story_info")["worldview"], True
@@ -186,7 +175,6 @@ def wrapper(story_name: str) -> callable:
                     user_info = get_state("settlement_manager").invoke(
                         {
                             "user_info": get_state("story_info").get_user_info(),
-                            # "story_context": get_state("storyteller").chat_history_detail(),
                             "story_context": get_state("story_info").get_event_original_history(),
                         }
                     )
@@ -196,7 +184,6 @@ def wrapper(story_name: str) -> callable:
 
                 get_state("story_info").add_new_event(prev_summary=summary, **user_info)
 
-                # send_in_scope("ai", f"is end: {story_end}")
                 if story_end:
                     get_state("story_info").set_story_end()
 
@@ -207,6 +194,21 @@ def wrapper(story_name: str) -> callable:
         with tab_event_history:
             for content in get_state("story_info").get_story_summary():
                 send_in_scope("user", content)
+
+        # 거시기 그 뭐냐 아무튼 그거
+        with tab_chat_histroy:
+            if len(get_state("story_info")) > 1:
+                event_view_idx = st.slider(
+                    "사건 선택",
+                    min_value=min(1, len(get_state("story_info")) - 1),
+                    max_value=len(get_state("story_info")) - 1,
+                )
+                hist = get_state("story_info").get_event_original_history(event_view_idx - 1)
+                for content in hist:
+                    send_in_scope(content["role"], content["message"])
+
+            else:
+                st.write("하나 이상의 사건을 마치고 난 후 기억을 되짚을 수 있습니다.")
 
         # 유저 정보
         with tab_user_info:
