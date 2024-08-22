@@ -8,8 +8,8 @@ class SummerizerResponseStruct(BaseModel):
         description=(
             "Summarize the main points of the adventure as told by the storyteller in a paragraph of less than 300 characters. "
             "Summarize it in a way that makes sense and is easy for everyone to read and understand at a glance. "
-            "Don't fill out the title and form, and write the output in plain text. "
-            "Respond in the same language as the Storyteller's input."
+            "Don't fill out the title and form, and write the output in plain text.\n"
+            "**[IMPORTANT]:** Respond in the same language as the Storyteller's input."
         )
     )
     story_end: bool = Field(
