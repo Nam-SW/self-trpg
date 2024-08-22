@@ -31,7 +31,7 @@ st.title("이야기 관리하기")
 st.markdown("`삭제` 버튼을 눌러 이야기를 삭제할 수 있습니다.")
 st.markdown("`초기화` 버튼을 눌러 이야기를 처음부터 다시 시작할 수 있습니다.")
 st.markdown("`마지막 사건 재시작` 마지막에 진행한 사건을 다시 시작할 수 있습니다.")
-st.warning("버튼 클릭시 재확인하지 않고 즉시 실행됩니다.")
+st.warning("주의: 버튼 클릭시 재확인하지 않고 즉시 실행됩니다.")
 
 stories = st.dataframe(df, hide_index=True, on_select="rerun", selection_mode="multi-row")
 
