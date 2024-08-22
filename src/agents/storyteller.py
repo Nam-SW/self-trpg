@@ -9,9 +9,12 @@ class StorytellerResponseStruct(BaseModel):
             "An array of strings, each representing a paragraph of the narrative. "
             "These should be vivid, detailed, and uncensored descriptions of the current situation, "
             "including main character thoughts, dialogue, and environmental details. "
-            "Write in the same language as the worldview you're presenting. "
             "But don't put will into your protagonist's thoughts, just write about the sensations they feel. "
-            "Ensure strict adherence to the world's rules and setting."
+            "Don't reimagine the user's behavior when they haven't told you. Users will tell you what they would do in the situation you've presented. "
+            "If the event is narratively over, wrap up the narrative so that it's clear that the event is over. "
+            "There must be at least five rounds of questions and answers between the storyteller and the user. "
+            "Ensure strict adherence to the world's rules and setting. "
+            "Write in the same language as the worldview you're presenting."
         ),
     )
     plot: str = Field(
@@ -33,7 +36,9 @@ class StorytellerResponseStruct(BaseModel):
     is_end: bool = Field(
         description=(
             "A boolean value indicating whether the current event has concluded. "
-            "This should be true only when the event has clearly ended, such as after a significant action or the passage of time."
+            # "This should be true only when the event has clearly ended, such as after a significant action or the passage of time."
+            "An 'event' is a single, clearly separable episode, such as (battle traces found - investigate - investigate and leave), or (arrival in city - tour of city - arrive at lodging - rest). Event contains multiple behaviors and situations. "
+            "However, merge with the next event or split the current event to avoid making the current event too long or too short."
         )
     )
 
