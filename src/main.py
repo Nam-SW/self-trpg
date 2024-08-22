@@ -48,6 +48,9 @@ if st.session_state["authentication_status"]:
     nav.run()
 
 else:
+    st.write("내가 원하는 세계관을 직접 작성하고, 그 세계에서 자유롭게 모험을 떠나세요.")
+    st.write("무슨 일이 일어날 지는 아무도 모릅니다.")
+
     login_tab, registration_tab = st.tabs(["로그인", "회원가입"])
 
     with login_tab:

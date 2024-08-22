@@ -34,7 +34,8 @@ st.title("새로운 이야기")
 
 form = st.form(key="story_form")
 form.write("새로운 이야기를 시작하기 앞서, 모험을 떠날 이야기를 정해봅시다.")
-form.write("이야기를 정하기 위해 탐험할 세계의 주제와 세부 내용을 입력해주세요.")
+form.write("이야기를 정하기 위해 탐험할 세계의 주제와 세부 내용을 입력하세요.")
+form.write("이야기를 정했다면, 당신이 누구인지 소개해주세요.")
 
 story_name = form.text_input("이야기의 제목")
 limit_event = form.slider("이야기의 길이", 10, 200, 50)
