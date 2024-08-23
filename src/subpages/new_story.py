@@ -13,7 +13,7 @@ role_manager = get_role_manager()
 if not hasattr(st.session_state, "info"):
     st.session_state["info"] = {
         "main_theme": "",
-        "keywords": "",
+        "requirements": "",
         "worldview": "",
         "limit_event": "",
         "role": "",
@@ -44,6 +44,9 @@ limit_event = form.slider("이야기의 길이", 10, 200, 50)
 if form.form_submit_button("이야기 시작하기"):
     st.session_state["info"]["limit_event"] = limit_event
     if "" in st.session_state["info"].values():
+        for k, v in st.session_state["info"].items():
+            if v == "":
+                print(k)
         st.warning("이야기와 캐릭터를 생성한 후 결정할 수 있습니다.", icon="⚠️")
 
     else:
