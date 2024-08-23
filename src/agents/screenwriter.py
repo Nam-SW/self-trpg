@@ -96,6 +96,33 @@ class Factions(BaseModel):
     )
 
 
+class Religion(BaseModel):
+    name: str = Field(description="Name of the religion")
+    description: str = Field(
+        description="Brief explanation of the religion's main beliefs, doctrines, and practices"
+    )
+    influence: str = Field(
+        description="Description of the religion's influence on society, politics, and culture"
+    )
+    key_figures: list[str] = Field(
+        default=[], description="List of major deities, prophets, religious leaders, etc."
+    )
+
+
+class Religions(BaseModel):
+    religion: list[Religion] = Field(
+        default=[],
+        description=("A comprehensive list of ALL religions that exist in this world."),
+    )
+    relations: list[str] = Field(
+        default=[],
+        description=(
+            "Explain the relationships between each religion in detail. "
+            "This can include various relationships such as alliances, hostilities, competitions, cooperations, etc."
+        ),
+    )
+
+
 class MajorCharacter(BaseModel):
     name: str = Field(description="This is the name of the character.")
     role: str = Field(
@@ -153,10 +180,10 @@ class HiddenSecrets(BaseModel):
         ),
     )
     secret_faction: Factions = Field(
-        description=(
-            "Describe the hidden forces that are not known to the public. "
-            "Detail their goals, methods of operation, influence, etc."
-        ),
+        description=("Describe the hidden factions that are not known to the public."),
+    )
+    secret_religions: Religions = Field(
+        description=("Describe the hidden religions that are not known to the public."),
     )
     end_triggers: list[HiddenSecret] = Field(
         default=[],
@@ -176,6 +203,9 @@ class World(BaseModel):
         description="Description of the geography and locations in the world setting."
     )
     factions: Factions = Field(description="These are the publicly visible factions.")
+    religions: Religions = Field(
+        description="List of all major religions and belief systems in this world. Should include basic information for each religion.",
+    )
     major_characters: list[MajorCharacter] = Field(
         default=[], description="A list of major characters. Don't include the main character."
     )
@@ -281,6 +311,19 @@ def world_to_document(world, show_secret=False):
     for relation in world["factions"]["relations"]:
         markdown += f"- {relation}\n"
 
+    # 종교
+    markdown += "\n## 종교\n"
+    markdown += "**종교 목록**:\n"
+    for religion in world["religions"]["religion"]:
+        markdown += f"- **{religion['name']}**\n"
+        markdown += f"  - 설명: {religion['description']}\n"
+        markdown += f"  - 영향력: {religion['influence']}\n"
+        markdown += f"  - 주요 인물: {', '.join(religion['key_figures'])}\n"
+
+    markdown += "\n**종교 간 관계**:\n"
+    for relation in world["religions"]["relations"]:
+        markdown += f"- {relation}\n"
+
     # 주요 캐릭터
     markdown += "\n## 주요 캐릭터\n"
     for character in world["major_characters"]:
@@ -312,6 +355,13 @@ def world_to_document(world, show_secret=False):
             markdown += f"  - 목표: {faction['goal']}\n"
             markdown += f"  - 활동 지역: {faction['regions']}\n"
             markdown += f"  - 특성: {faction['trait']}\n"
+
+        markdown += "\n**비밀 종교**:\n"
+        for religion in world["hidden_secrets"]["secret_religions"]["religion"]:
+            markdown += f"- **{religion['name']}**\n"
+            markdown += f"  - 설명: {religion['description']}\n"
+            markdown += f"  - 영향력: {religion['influence']}\n"
+            markdown += f"  - 주요 인물: {', '.join(religion['key_figures'])}\n"
 
         markdown += "\n**엔딩 조건**:\n"
         for trigger in world["hidden_secrets"]["end_triggers"]:
