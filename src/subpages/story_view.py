@@ -198,11 +198,14 @@ def wrapper(story_name: str) -> callable:
         # 거시기 그 뭐냐 아무튼 그거
         with tab_chat_histroy:
             if len(get_state("story_info")) > 1:
-                event_view_idx = st.slider(
-                    "사건 선택",
-                    min_value=min(1, len(get_state("story_info")) - 1),
-                    max_value=len(get_state("story_info")) - 1,
-                )
+                if len(get_state("story_info")) > 2:
+                    event_view_idx = st.slider(
+                        "사건 선택",
+                        min_value=min(1, len(get_state("story_info")) - 1),
+                        max_value=len(get_state("story_info")) - 1,
+                    )
+                else:
+                    event_view_idx = 1
                 hist = get_state("story_info").get_event_original_history(event_view_idx - 1)
                 for content in hist:
                     send_in_scope(content["role"], content["message"])
